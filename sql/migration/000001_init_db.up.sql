@@ -1,3 +1,6 @@
+
+BEGIN;
+
 CREATE EXTENSION pgcrypto;
 
 CREATE TYPE "role" AS ENUM (
@@ -137,3 +140,5 @@ ALTER TABLE "premium" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id") ON D
 ALTER TABLE "avis" ADD FOREIGN KEY ("user_id_target") REFERENCES "users" ("id") ON DELETE CASCADE;
 
 ALTER TABLE "avis" ADD FOREIGN KEY ("user_id_writer") REFERENCES "users" ("id") ON DELETE CASCADE;
+
+COMMIT;
