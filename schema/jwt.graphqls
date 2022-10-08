@@ -1,0 +1,26 @@
+type JWTResponse {
+  "jwt token for user to authenticate, contains user id, role and expiry"
+  access_token: JWT!
+  "use to refresh the access token"
+  refresh_token: JWT!
+}
+
+input SigninInput {
+  "email of the user"
+  email: Email!
+  "password of the user"
+  password: String!
+}
+
+input SignupInput {
+  "email of the user"
+  email: Email!
+  "password of the user"
+  password: String!
+  "confirm password of the user"
+  confirm_password: String!
+  "firstname of the user"
+  firstname: String!
+  "lastname of the user"
+  lastname: String!
+}

@@ -1,0 +1,16 @@
+"The `File` type, represents the response of uploading a file."
+type UploadResponse {
+    name: String!
+    size: Int!
+    url: String!
+    success: Boolean!
+}
+
+input UploadInput {
+  "The file to upload"
+  file: Upload!
+  "width of the image if it needs to be resized"
+  width: Int
+  "height of the image if it needs to be resized"
+  height: Int
+}

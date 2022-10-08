@@ -1,0 +1,29 @@
+type Mutation {
+    #
+    # ********** AUTH MUTATION *****************
+    #
+    "connect a user to the application"
+    signin(input: SigninInput!): JWTResponse!
+    "create a new user"
+    signup(input: SignupInput!): JWTResponse!
+    "use to refresh the access token"
+    refresh(refresh_token: JWT!): JWTResponse!
+
+
+    #
+    # ********** USERS MUTATION *****************
+    #
+    "update a user"
+    updateUser(input: UpdateUserInput!): User @jwtAuth @hasRole(role: ADMIN) @jwtAuth
+    "delete a user"
+    deleteUser(id: UUID!): Boolean @jwtAuth @hasRole(role: ADMIN) @jwtAuth
+    "update the user's role"
+    updateRole(role: UserType!, id:UUID!): User! @hasRole(role: ADMIN) @jwtAuth
+
+
+    #
+    # ********** FILE MUTATION *****************
+    #
+    "upload a file"
+    singleUpload(file: UploadInput!): UploadResponse! @jwtAuth @hasRole(role: ADMIN)
+}

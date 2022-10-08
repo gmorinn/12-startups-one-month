@@ -1,0 +1,23 @@
+scalar Time
+scalar Upload
+scalar UUID
+scalar Email
+scalar URL
+scalar JWT
+directive @hasRole(role: UserType!) on FIELD_DEFINITION
+directive @jwtAuth on FIELD_DEFINITION
+directive @goModel(model: String, models: [String!]) on OBJECT
+    | INPUT_OBJECT
+    | SCALAR
+    | ENUM
+    | INTERFACE
+    | UNION
+
+directive @goField(forceResolver: Boolean, name: String) on INPUT_FIELD_DEFINITION
+    | FIELD_DEFINITION
+
+
+schema {
+    query: Query
+    mutation: Mutation
+}

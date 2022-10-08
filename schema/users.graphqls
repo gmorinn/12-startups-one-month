@@ -1,0 +1,32 @@
+enum UserType {
+  "User can have access to all data"
+  ADMIN
+  "User can access specific data but not all"
+  PRO
+  "User can only see their own data"
+  USER
+}
+
+"All fields that represent a user"
+type User {
+  firstname: String!
+  lastname: String!
+  email: Email!
+  id: UUID!
+  role: UserType!
+  created_at: Time!
+  deleted_at: Time
+  updated_at: Time!
+}
+
+"payload send when you update a user"
+input UpdateUserInput {
+  "email of the user (required)"
+  email: Email!
+  "firstname of the user (required)"
+  firstname: String!
+  "lastname of the user (required)"
+  lastname: String!
+  "id of the user (required)"
+  id: UUID!
+}

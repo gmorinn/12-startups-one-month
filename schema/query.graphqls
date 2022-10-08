@@ -1,0 +1,9 @@
+type Query {
+    #
+    # ********** USERS QUERY *****************
+    #
+    "returns one user by his id precising in the payload"
+    user(id:UUID!): User @jwtAuth @hasRole(role: ADMIN)
+    "returns all users with a limit precising in the payload, need to be admin to access"
+    users(limit: Int!, offset: Int!): [User] @hasRole(role: ADMIN) @jwtAuth
+}
