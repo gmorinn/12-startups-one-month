@@ -12,6 +12,30 @@ import (
 	"github.com/99designs/gqlgen/graphql"
 )
 
+// all fields that represent an 'avis'
+type Avis struct {
+	ID           mypkg.UUID `json:"id"`
+	CreatedAt    time.Time  `json:"created_at"`
+	DeletedAt    *time.Time `json:"deleted_at"`
+	UpdatedAt    time.Time  `json:"updated_at"`
+	UserIDTarget mypkg.UUID `json:"user_id_target"`
+	UserIDWriter mypkg.UUID `json:"user_id_writer"`
+	Note         int        `json:"note"`
+	Comment      string     `json:"comment"`
+}
+
+// payload send when a user give an avis
+type AvisInput struct {
+	// correspond of the user who receive the avis
+	UserIDTarget mypkg.UUID `json:"user_id_target"`
+	// correspond of the user who give the avis
+	UserIDWriter mypkg.UUID `json:"user_id_writer"`
+	// note of the avis
+	Note int `json:"note"`
+	// comment of the avis
+	Comment string `json:"comment"`
+}
+
 type JWTResponse struct {
 	// jwt token for user to authenticate, contains user id, role and expiry
 	AccessToken mypkg.JWT `json:"access_token"`
@@ -33,22 +57,30 @@ type SignupInput struct {
 	Password string `json:"password"`
 	// confirm password of the user
 	ConfirmPassword string `json:"confirm_password"`
-	// firstname of the user
-	Firstname string `json:"firstname"`
-	// lastname of the user
-	Lastname string `json:"lastname"`
 }
 
-// payload send when you update a user
-type UpdateUserInput struct {
-	// email of the user (required)
-	Email mypkg.Email `json:"email"`
-	// firstname of the user (required)
-	Firstname string `json:"firstname"`
-	// lastname of the user (required)
-	Lastname string `json:"lastname"`
+// payload send when you a user want to update his profile
+type UpdateUserProfileInput struct {
 	// id of the user (required)
 	ID mypkg.UUID `json:"id"`
+	// email of the user (required)
+	Email mypkg.Email `json:"email"`
+	// firstname of the user
+	Firstname *string `json:"firstname"`
+	// lastname of the user
+	Lastname *string `json:"lastname"`
+	// age of the user
+	Age *int `json:"age"`
+	// sexe of the user
+	Sexe *SexeType `json:"sexe"`
+	// goals of the user
+	Goals []GoalType `json:"goals"`
+	// description of his ideal partner
+	IdealPartner *string `json:"ideal_partner"`
+	// url of the profile picture
+	ProfilePicture *string `json:"profile_picture"`
+	// city of the user
+	City *string `json:"city"`
 }
 
 type UploadInput struct {
@@ -70,14 +102,178 @@ type UploadResponse struct {
 
 // All fields that represent a user
 type User struct {
-	Firstname string      `json:"firstname"`
-	Lastname  string      `json:"lastname"`
-	Email     mypkg.Email `json:"email"`
-	ID        mypkg.UUID  `json:"id"`
-	Role      UserType    `json:"role"`
-	CreatedAt time.Time   `json:"created_at"`
-	DeletedAt *time.Time  `json:"deleted_at"`
-	UpdatedAt time.Time   `json:"updated_at"`
+	ID             mypkg.UUID   `json:"id"`
+	CreatedAt      time.Time    `json:"created_at"`
+	DeletedAt      *time.Time   `json:"deleted_at"`
+	UpdatedAt      time.Time    `json:"updated_at"`
+	Email          mypkg.Email  `json:"email"`
+	Firstname      *string      `json:"firstname"`
+	Lastname       *string      `json:"lastname"`
+	Role           []UserType   `json:"role"`
+	Age            *int         `json:"age"`
+	Sexe           *SexeType    `json:"sexe"`
+	Goals          []GoalType   `json:"goals"`
+	IdealPartner   *string      `json:"ideal_partner"`
+	ProfilePicture *string      `json:"profile_picture"`
+	City           *string      `json:"city"`
+	Ask            int          `json:"ask"`
+	Badge          bool         `json:"badge"`
+	Formule        *FormuleType `json:"formule"`
+}
+
+// All fields that represent the table viewers
+type Viewer struct {
+	ID        mypkg.UUID `json:"id"`
+	CreatedAt time.Time  `json:"created_at"`
+	DeletedAt *time.Time `json:"deleted_at"`
+	UpdatedAt time.Time  `json:"updated_at"`
+	// The name of the viewer
+	UserIDViewer mypkg.UUID `json:"user_id_viewer"`
+	// The name of the profile he is viewing
+	ProfileIDViewed mypkg.UUID `json:"profile_id_viewed"`
+	// the date where the viewer was watching the profile
+	DateViewed time.Time `json:"date_viewed"`
+}
+
+type FormuleType string
+
+const (
+	FormuleTypeBasic   FormuleType = "BASIC"
+	FormuleTypeGold    FormuleType = "GOLD"
+	FormuleTypeDiamond FormuleType = "DIAMOND"
+)
+
+var AllFormuleType = []FormuleType{
+	FormuleTypeBasic,
+	FormuleTypeGold,
+	FormuleTypeDiamond,
+}
+
+func (e FormuleType) IsValid() bool {
+	switch e {
+	case FormuleTypeBasic, FormuleTypeGold, FormuleTypeDiamond:
+		return true
+	}
+	return false
+}
+
+func (e FormuleType) String() string {
+	return string(e)
+}
+
+func (e *FormuleType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = FormuleType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid FormuleType", str)
+	}
+	return nil
+}
+
+func (e FormuleType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type GoalType string
+
+const (
+	// User wants to gain weight
+	GoalTypePriseDeMasse GoalType = "PRISE_DE_MASSE"
+	// User wants to lose weight
+	GoalTypePerteDePoids GoalType = "PERTE_DE_POIDS"
+	// User wants to maintain his weight
+	GoalTypeGarderLaForme GoalType = "GARDER_LA_FORME"
+	// User wants to gain muscle
+	GoalTypePriseDeMuscle GoalType = "PRISE_DE_MUSCLE"
+	// User wants to have performance
+	GoalTypePriseDeForce GoalType = "PRISE_DE_FORCE"
+	// User wants to work on his endurance
+	GoalTypeCardio GoalType = "CARDIO"
+)
+
+var AllGoalType = []GoalType{
+	GoalTypePriseDeMasse,
+	GoalTypePerteDePoids,
+	GoalTypeGarderLaForme,
+	GoalTypePriseDeMuscle,
+	GoalTypePriseDeForce,
+	GoalTypeCardio,
+}
+
+func (e GoalType) IsValid() bool {
+	switch e {
+	case GoalTypePriseDeMasse, GoalTypePerteDePoids, GoalTypeGarderLaForme, GoalTypePriseDeMuscle, GoalTypePriseDeForce, GoalTypeCardio:
+		return true
+	}
+	return false
+}
+
+func (e GoalType) String() string {
+	return string(e)
+}
+
+func (e *GoalType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = GoalType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid GoalType", str)
+	}
+	return nil
+}
+
+func (e GoalType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type SexeType string
+
+const (
+	SexeTypeMan   SexeType = "MAN"
+	SexeTypeWoman SexeType = "WOMAN"
+	SexeTypeOther SexeType = "OTHER"
+)
+
+var AllSexeType = []SexeType{
+	SexeTypeMan,
+	SexeTypeWoman,
+	SexeTypeOther,
+}
+
+func (e SexeType) IsValid() bool {
+	switch e {
+	case SexeTypeMan, SexeTypeWoman, SexeTypeOther:
+		return true
+	}
+	return false
+}
+
+func (e SexeType) String() string {
+	return string(e)
+}
+
+func (e *SexeType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = SexeType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid SexeType", str)
+	}
+	return nil
+}
+
+func (e SexeType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
 type UserType string

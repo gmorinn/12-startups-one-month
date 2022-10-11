@@ -2,6 +2,7 @@ package utils
 
 import (
 	"database/sql"
+	"strconv"
 	"time"
 
 	"github.com/google/uuid"
@@ -46,4 +47,13 @@ func NullU(u uuid.UUID) string {
 		return u.String()
 	}
 	return ""
+}
+
+// convert string to int using strconv
+func StrToInt(s string) int {
+	i, err := strconv.Atoi(s)
+	if err != nil {
+		return -1
+	}
+	return i
 }

@@ -1,0 +1,23 @@
+"all fields that represent an 'avis'"
+type Avis {
+    id: UUID!
+    created_at: Time!
+    deleted_at: Time
+    updated_at: Time!
+    user_id_target: UUID!
+    user_id_writer: UUID!
+    note: Int!
+    comment: String!
+}
+
+"payload send when a user give an avis"
+input AvisInput {
+    "correspond of the user who receive the avis"
+    user_id_target: UUID!
+    "correspond of the user who give the avis"
+    user_id_writer: UUID!
+    "note of the avis"
+    note: Int! @binding(validation: "min=0,max=5")
+    "comment of the avis"
+    comment: String!
+}

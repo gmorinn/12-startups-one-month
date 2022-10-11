@@ -9,18 +9,14 @@ input SigninInput {
   "email of the user"
   email: Email!
   "password of the user"
-  password: String!
+  password: String! @binding(validation: "min=6,max=255,with_number=true")
 }
 
 input SignupInput {
   "email of the user"
   email: Email!
   "password of the user"
-  password: String!
+  password: String! @binding(validation: "min=6,max=255,with_number=true")
   "confirm password of the user"
   confirm_password: String!
-  "firstname of the user"
-  firstname: String!
-  "lastname of the user"
-  lastname: String!
 }

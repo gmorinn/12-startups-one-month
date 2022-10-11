@@ -10,11 +10,12 @@ import (
 	"database/sql"
 
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 )
 
 const checkUserByID = `-- name: CheckUserByID :one
 SELECT EXISTS(
-    SELECT id, created_at, updated_at, deleted_at, email, password, firstname, lastname, role FROM users
+    SELECT id FROM users
     WHERE id = $1
     AND deleted_at IS NULL
 )
@@ -42,20 +43,16 @@ func (q *Queries) DeleteUserByID(ctx context.Context, id uuid.UUID) error {
 }
 
 const getAllUser = `-- name: GetAllUser :many
-SELECT id, created_at, updated_at, deleted_at, email, password, firstname, lastname, role FROM users
+SELECT id, created_at, updated_at, deleted_at, email, password, firstname, lastname, role, age, sexe, goals, ideal_partners, profile_picture, is_premium, city, ask, badge, formule FROM users
 WHERE deleted_at IS NULL
 ORDER BY
   CASE WHEN $1::bool THEN firstname END asc,
   CASE WHEN $2::bool THEN firstname END desc,
   CASE WHEN $3::bool THEN lastname END asc,
   CASE WHEN $4::bool THEN lastname END desc,
-  CASE WHEN $5::bool THEN email END asc,
-  CASE WHEN $6::bool THEN email END desc,
-  CASE WHEN $7::bool THEN created_at END asc,
-  CASE WHEN $8::bool THEN created_at END desc,
-  CASE WHEN $9::bool THEN role END asc,
-  CASE WHEN $10::bool THEN role END desc
-LIMIT $12 OFFSET $11
+  CASE WHEN $5::bool THEN created_at END asc,
+  CASE WHEN $6::bool THEN created_at END desc
+LIMIT $8 OFFSET $7
 `
 
 type GetAllUserParams struct {
@@ -63,12 +60,8 @@ type GetAllUserParams struct {
 	FirstnameDesc bool  `json:"firstname_desc"`
 	LastnameAsc   bool  `json:"lastname_asc"`
 	LastnameDesc  bool  `json:"lastname_desc"`
-	EmailAsc      bool  `json:"email_asc"`
-	EmailDesc     bool  `json:"email_desc"`
 	CreatedAtAsc  bool  `json:"created_at_asc"`
 	CreatedAtDesc bool  `json:"created_at_desc"`
-	RoleAsc       bool  `json:"role_asc"`
-	RoleDesc      bool  `json:"role_desc"`
 	Offset        int32 `json:"offset"`
 	Limit         int32 `json:"limit"`
 }
@@ -79,12 +72,8 @@ func (q *Queries) GetAllUser(ctx context.Context, arg GetAllUserParams) ([]User,
 		arg.FirstnameDesc,
 		arg.LastnameAsc,
 		arg.LastnameDesc,
-		arg.EmailAsc,
-		arg.EmailDesc,
 		arg.CreatedAtAsc,
 		arg.CreatedAtDesc,
-		arg.RoleAsc,
-		arg.RoleDesc,
 		arg.Offset,
 		arg.Limit,
 	)
@@ -104,7 +93,17 @@ func (q *Queries) GetAllUser(ctx context.Context, arg GetAllUserParams) ([]User,
 			&i.Password,
 			&i.Firstname,
 			&i.Lastname,
-			&i.Role,
+			pq.Array(&i.Role),
+			&i.Age,
+			&i.Sexe,
+			pq.Array(&i.Goals),
+			&i.IdealPartners,
+			&i.ProfilePicture,
+			&i.IsPremium,
+			&i.City,
+			&i.Ask,
+			&i.Badge,
+			&i.Formule,
 		); err != nil {
 			return nil, err
 		}
@@ -120,7 +119,7 @@ func (q *Queries) GetAllUser(ctx context.Context, arg GetAllUserParams) ([]User,
 }
 
 const getUserByID = `-- name: GetUserByID :one
-SELECT id, created_at, updated_at, deleted_at, email, password, firstname, lastname, role FROM users
+SELECT id, created_at, updated_at, deleted_at, email, password, firstname, lastname, role, age, sexe, goals, ideal_partners, profile_picture, is_premium, city, ask, badge, formule FROM users
 WHERE id = $1
 AND deleted_at IS NULL
 LIMIT 1
@@ -138,13 +137,23 @@ func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
 		&i.Password,
 		&i.Firstname,
 		&i.Lastname,
-		&i.Role,
+		pq.Array(&i.Role),
+		&i.Age,
+		&i.Sexe,
+		pq.Array(&i.Goals),
+		&i.IdealPartners,
+		&i.ProfilePicture,
+		&i.IsPremium,
+		&i.City,
+		&i.Ask,
+		&i.Badge,
+		&i.Formule,
 	)
 	return i, err
 }
 
 const updateRole = `-- name: UpdateRole :exec
-UPDATE 
+UPDATE
     users
 SET
     role = $2,
@@ -155,11 +164,11 @@ WHERE
 
 type UpdateRoleParams struct {
 	ID   uuid.UUID `json:"id"`
-	Role Role      `json:"role"`
+	Role []Role    `json:"role"`
 }
 
 func (q *Queries) UpdateRole(ctx context.Context, arg UpdateRoleParams) error {
-	_, err := q.db.ExecContext(ctx, updateRole, arg.ID, arg.Role)
+	_, err := q.db.ExecContext(ctx, updateRole, arg.ID, pq.Array(arg.Role))
 	return err
 }
 
@@ -170,16 +179,28 @@ SET
     firstname = $2,
     lastname = $3,
     email = $4,
+    age = $5,
+    sexe = $6,
+    goals = $7,
+    ideal_partners = $8,
+    profile_picture = $9,
+    city = $10,
     updated_at = NOW()
 WHERE
     id = $1
 `
 
 type UpdateUserParams struct {
-	ID        uuid.UUID      `json:"id"`
-	Firstname sql.NullString `json:"firstname"`
-	Lastname  sql.NullString `json:"lastname"`
-	Email     string         `json:"email"`
+	ID             uuid.UUID      `json:"id"`
+	Firstname      sql.NullString `json:"firstname"`
+	Lastname       sql.NullString `json:"lastname"`
+	Email          string         `json:"email"`
+	Age            sql.NullInt32  `json:"age"`
+	Sexe           Sexe           `json:"sexe"`
+	Goals          []Goals        `json:"goals"`
+	IdealPartners  sql.NullString `json:"ideal_partners"`
+	ProfilePicture sql.NullString `json:"profile_picture"`
+	City           sql.NullString `json:"city"`
 }
 
 func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) error {
@@ -188,6 +209,12 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) error {
 		arg.Firstname,
 		arg.Lastname,
 		arg.Email,
+		arg.Age,
+		arg.Sexe,
+		pq.Array(arg.Goals),
+		arg.IdealPartners,
+		arg.ProfilePicture,
+		arg.City,
 	)
 	return err
 }

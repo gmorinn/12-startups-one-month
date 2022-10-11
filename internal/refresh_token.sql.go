@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 )
 
 const createRefreshToken = `-- name: CreateRefreshToken :exec
@@ -109,7 +110,7 @@ type GetRefreshTokenRow struct {
 	UserFirstname sql.NullString `json:"user_firstname"`
 	UserLastname  sql.NullString `json:"user_lastname"`
 	UserEmail     sql.NullString `json:"user_email"`
-	UserRole      Role           `json:"user_role"`
+	UserRole      []Role         `json:"user_role"`
 }
 
 func (q *Queries) GetRefreshToken(ctx context.Context, token string) (GetRefreshTokenRow, error) {
@@ -128,7 +129,7 @@ func (q *Queries) GetRefreshToken(ctx context.Context, token string) (GetRefresh
 		&i.UserFirstname,
 		&i.UserLastname,
 		&i.UserEmail,
-		&i.UserRole,
+		pq.Array(&i.UserRole),
 	)
 	return i, err
 }

@@ -1,0 +1,14 @@
+
+"All fields that represent the table viewers"
+type Viewer {
+    id: UUID!
+    created_at: Time!
+    deleted_at: Time
+    updated_at: Time!
+    "The name of the viewer"
+    user_id_viewer: UUID!
+    "The name of the profile he is viewing"
+    profile_id_viewed: UUID!
+    "the date where the viewer was watching the profile"
+    date_viewed: Time!
+}

@@ -4,12 +4,14 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"reflect"
 	"strings"
 	"time"
 
 	"12-startups-one-month/graph/model"
 	db "12-startups-one-month/internal"
 	sqlc "12-startups-one-month/internal"
+	"12-startups-one-month/utils"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/dgrijalva/jwt-go"
@@ -22,7 +24,7 @@ import (
 
 type JwtContent struct {
 	ID   uuid.UUID `json:"id"`
-	Role db.Role   `json:"role"`
+	Role []db.Role `json:"role"`
 }
 
 // storeRefresh store refres_token into database
@@ -37,7 +39,7 @@ func (server *Server) StoreRefresh(ctx context.Context, token string, exp time.T
 }
 
 // generate access token, refresh token and expiry time for user based on the id and role
-func (server *Server) GenerateJwtToken(ID uuid.UUID, role string) (string, string, time.Time, error) {
+func (server *Server) GenerateJwtToken(ID uuid.UUID, role []string) (string, string, time.Time, error) {
 	// Generate access token
 	accessToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"id":   ID.String(),
@@ -104,13 +106,13 @@ func (server *Server) GetUserContext(ctx context.Context) *JwtContent {
 	if !ok {
 		return nil
 	}
-	role, ok := claims["role"].(string)
+	role, ok := claims["role"].([]string)
 	if !ok {
 		return nil
 	}
 	res = &JwtContent{
 		ID:   uuid.MustParse(id),
-		Role: db.Role(role),
+		Role: utils.ConvertStringToRole(role),
 	}
 	return res
 }
@@ -126,14 +128,81 @@ func (server *Server) JwtAuth(ctx context.Context, obj interface{}, next graphql
 	return next(ctx)
 }
 
-func (server *Server) HasRole(ctx context.Context, obj interface{}, next graphql.Resolver, role model.UserType) (interface{}, error) {
+func (server *Server) HasRole(ctx context.Context, obj interface{}, next graphql.Resolver, roles []model.UserType) (interface{}, error) {
 	userCtx := server.GetUserContext(ctx)
 
-	if userCtx == nil || string(userCtx.Role) != strings.ToLower(role.String()) {
+	if userCtx == nil || utils.HasRole(userCtx.Role, roles) == false {
 		return nil, &gqlerror.Error{
 			Message: "Can't access this resource",
 		}
 	}
 
 	return next(ctx)
+}
+
+func (server *Server) Binding(ctx context.Context, obj interface{}, next graphql.Resolver, validation string) (interface{}, error) {
+	res, _ := next(ctx)
+	if res == nil {
+		return nil, nil
+	}
+	// get type of res
+	valueType := reflect.TypeOf(res).String()
+
+	// split validation string by comma
+	validations := strings.Split(validation, ",")
+
+	// log.Println("valueType", valueType)
+	// log.Println(res.(string))
+
+	if valueType == "string" {
+		for _, v := range validations {
+			tmpKey := strings.Split(v, "=")
+			switch tmpKey[0] {
+			case "min":
+				if len(res.(string)) < utils.StrToInt(tmpKey[1]) {
+					return nil, utils.Gqlerror("must be at least " + tmpKey[1] + " characters")
+				}
+			case "max":
+				if len(res.(string)) > utils.StrToInt(tmpKey[1]) {
+					return nil, utils.Gqlerror("must be at most " + tmpKey[1] + " characters")
+				}
+			case "with_number":
+				if tmpKey[1] == "true" && !strings.ContainsAny(res.(string), "0123456789") {
+					return nil, utils.Gqlerror("must contain at least one number")
+				} else if tmpKey[1] == "false" && strings.ContainsAny(res.(string), "0123456789") {
+					return nil, utils.Gqlerror("must not contain number")
+				}
+			}
+		}
+	} else if valueType == "int" {
+		for _, v := range validations {
+			tmpKey := strings.Split(v, "=")
+			switch tmpKey[0] {
+			case "min":
+				if res.(int) < utils.StrToInt(tmpKey[1]) {
+					return nil, utils.Gqlerror("must be at least " + tmpKey[1])
+				}
+			case "max":
+				if res.(int) > utils.StrToInt(tmpKey[1]) {
+					return nil, utils.Gqlerror("must be at most " + tmpKey[1])
+				}
+			}
+		}
+	} else if valueType[:2] == "[]" {
+		for _, v := range validations {
+			tmpKey := strings.Split(v, "=")
+			switch tmpKey[0] {
+			case "min":
+				if len(res.([]interface{})) < utils.StrToInt(tmpKey[1]) {
+					return nil, utils.Gqlerror("must be at least " + tmpKey[1] + " items")
+				}
+			case "max":
+				if len(res.([]interface{})) > utils.StrToInt(tmpKey[1]) {
+					return nil, utils.Gqlerror("must be at most " + tmpKey[1] + " items")
+				}
+			}
+		}
+
+	}
+	return res, nil
 }

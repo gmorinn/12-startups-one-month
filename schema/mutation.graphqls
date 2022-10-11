@@ -14,16 +14,35 @@ type Mutation {
     # ********** USERS MUTATION *****************
     #
     "update a user"
-    updateUser(input: UpdateUserInput!): User @jwtAuth @hasRole(role: ADMIN) @jwtAuth
+    updateUser(input: UpdateUserProfileInput!): User @jwtAuth @hasRole(role: [ADMIN, USER])
     "delete a user"
-    deleteUser(id: UUID!): Boolean @jwtAuth @hasRole(role: ADMIN) @jwtAuth
+    deleteUser(id: UUID!): Boolean! @jwtAuth @hasRole(role: [ADMIN, USER])
     "update the user's role"
-    updateRole(role: UserType!, id:UUID!): User! @hasRole(role: ADMIN) @jwtAuth
+    updateRole(role: [UserType!]!, id:UUID!): User! @hasRole(role: [ADMIN]) @jwtAuth
 
 
     #
     # ********** FILE MUTATION *****************
     #
     "upload a file"
-    singleUpload(file: UploadInput!): UploadResponse! @jwtAuth @hasRole(role: ADMIN)
+    singleUpload(file: UploadInput!): UploadResponse! @jwtAuth @hasRole(role: [ADMIN, USER])
+
+
+
+    #
+    # ********** VIEWERS MUTATION *****************
+    #
+    "add a viewer based on the user's id and the profil id viewed"
+    addViewer(id: UUID!): Boolean! @jwtAuth @hasRole(role: [ADMIN, USER])
+
+
+    #
+    # ********** AVIS MUTATION *****************
+    #
+    "create an avis"
+    createAvis(input: AvisInput!): Avis! @jwtAuth @hasRole(role: [ADMIN, USER])
+    "update an avis"
+    updateAvis(input: AvisInput!): Avis! @jwtAuth @hasRole(role: [ADMIN, USER])
+    "delete an avis"
+    deleteAvis(id: UUID!): Boolean! @jwtAuth @hasRole(role: [ADMIN, USER])
 }

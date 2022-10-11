@@ -34,6 +34,7 @@ func graphqlHandler(server *config.Server) gin.HandlerFunc {
 	// custom directives
 	c.Directives.JwtAuth = server.JwtAuth
 	c.Directives.HasRole = server.HasRole
+	c.Directives.Binding = server.Binding
 
 	h := handler.New(graph.NewExecutableSchema(c))
 

@@ -16,9 +16,9 @@ import (
 type IUserService interface {
 	GetUser(ctx context.Context, id mypkg.UUID) (*model.User, error)
 	GetUsers(ctx context.Context, limit int, offset int) ([]*model.User, error)
-	UpdateUser(ctx context.Context, input *model.UpdateUserInput) (*model.User, error)
-	DeleteUser(ctx context.Context, id mypkg.UUID) (*bool, error)
-	UpdateRole(ctx context.Context, role model.UserType, id mypkg.UUID) (*model.User, error)
+	UpdateUser(ctx context.Context, input *model.UpdateUserProfileInput) (*model.User, error)
+	DeleteUser(ctx context.Context, id mypkg.UUID) (bool, error)
+	UpdateRole(ctx context.Context, role []model.UserType, id mypkg.UUID) (*model.User, error)
 }
 
 type UserService struct {
@@ -37,10 +37,9 @@ func SqlUserToGraphUser(sqlUser *db.User) *model.User {
 	}
 	return &model.User{
 		ID:        mypkg.UUID(sqlUser.ID.String()),
-		Firstname: sqlUser.Firstname.String,
-		Lastname:  sqlUser.Lastname.String,
+		Firstname: &sqlUser.Firstname.String,
+		Lastname:  &sqlUser.Lastname.String,
 		Email:     mypkg.Email(sqlUser.Email),
-		Role:      model.UserType(sqlUser.Role),
 		CreatedAt: sqlUser.CreatedAt,
 		UpdatedAt: sqlUser.UpdatedAt,
 		DeletedAt: &sqlUser.DeletedAt.Time,
@@ -97,15 +96,13 @@ func (s *UserService) GetUsers(ctx context.Context, limit int, offset int) ([]*m
 	return res, err
 }
 
-func (s *UserService) UpdateUser(ctx context.Context, input *model.UpdateUserInput) (*model.User, error) {
+func (s *UserService) UpdateUser(ctx context.Context, input *model.UpdateUserProfileInput) (*model.User, error) {
 	var res *model.User = nil
 
 	err := s.server.Store.ExecTx(ctx, func(q *db.Queries) error {
 		if err := q.UpdateUser(ctx, db.UpdateUserParams{
-			ID:        uuid.MustParse(string(input.ID)),
-			Firstname: utils.NullS(input.Firstname),
-			Lastname:  utils.NullS(input.Lastname),
-			Email:     string(input.Email),
+			ID:    uuid.MustParse(string(input.ID)),
+			Email: string(input.Email),
 		}); err != nil {
 			return err
 		}
@@ -124,7 +121,7 @@ func (s *UserService) UpdateUser(ctx context.Context, input *model.UpdateUserInp
 	return res, err
 }
 
-func (s *UserService) DeleteUser(ctx context.Context, id mypkg.UUID) (*bool, error) {
+func (s *UserService) DeleteUser(ctx context.Context, id mypkg.UUID) (bool, error) {
 	var res bool = false
 
 	err := s.server.Store.ExecTx(ctx, func(q *db.Queries) error {
@@ -144,18 +141,22 @@ func (s *UserService) DeleteUser(ctx context.Context, id mypkg.UUID) (*bool, err
 	})
 
 	if err != nil {
-		return nil, utils.ErrorResponse("TX_DELETE_USER", err)
+		return res, utils.ErrorResponse("TX_DELETE_USER", err)
 	}
-	return &res, err
+	return res, err
 }
 
-func (s *UserService) UpdateRole(ctx context.Context, role model.UserType, id mypkg.UUID) (*model.User, error) {
+func (s *UserService) UpdateRole(ctx context.Context, role []model.UserType, id mypkg.UUID) (*model.User, error) {
 	var res *model.User = nil
 
 	err := s.server.Store.ExecTx(ctx, func(q *db.Queries) error {
+		newRoles := []db.Role{}
+		for _, v := range role {
+			newRoles = append(newRoles, db.Role(strings.ToLower(string(v))))
+		}
 		if err := q.UpdateRole(ctx, db.UpdateRoleParams{
 			ID:   uuid.MustParse(string(id)),
-			Role: db.Role(strings.ToLower(string(role))),
+			Role: newRoles,
 		}); err != nil {
 			return err
 		}

@@ -12,6 +12,76 @@ import (
 	"github.com/google/uuid"
 )
 
+type Formule string
+
+const (
+	FormuleBasic   Formule = "basic"
+	FormuleGold    Formule = "gold"
+	FormuleDiamond Formule = "diamond"
+)
+
+func (e *Formule) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = Formule(s)
+	case string:
+		*e = Formule(s)
+	default:
+		return fmt.Errorf("unsupported scan type for Formule: %T", src)
+	}
+	return nil
+}
+
+type Goals string
+
+const (
+	GoalsPriseDeMasse  Goals = "prise_de_masse"
+	GoalsPerteDePoids  Goals = "perte_de_poids"
+	GoalsPriseDeForce  Goals = "prise_de_force"
+	GoalsGarderLaForme Goals = "garder_la_forme"
+	GoalsPriseDeMuscle Goals = "prise_de_muscle"
+	GoalsCardio        Goals = "cardio"
+)
+
+func (e *Goals) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = Goals(s)
+	case string:
+		*e = Goals(s)
+	default:
+		return fmt.Errorf("unsupported scan type for Goals: %T", src)
+	}
+	return nil
+}
+
+type Performance string
+
+const (
+	PerformanceDeveloppeCouche  Performance = "developpe_couche"
+	PerformanceSquat            Performance = "squat"
+	PerformanceDeveloppeIncline Performance = "developpe_incline"
+	PerformanceDeveloppeEpaule  Performance = "developpe_epaule"
+	PerformanceSouleveTerre     Performance = "souleve_terre"
+	PerformanceLegPress         Performance = "leg_press"
+	PerformanceLegCurl          Performance = "leg_curl"
+	PerformanceLegExtension     Performance = "leg_extension"
+	PerformanceCurlBarre        Performance = "curl_barre"
+	PerformanceHipThrust        Performance = "hip_thrust"
+)
+
+func (e *Performance) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = Performance(s)
+	case string:
+		*e = Performance(s)
+	default:
+		return fmt.Errorf("unsupported scan type for Performance: %T", src)
+	}
+	return nil
+}
+
 type Role string
 
 const (
@@ -32,6 +102,57 @@ func (e *Role) Scan(src interface{}) error {
 	return nil
 }
 
+type Sexe string
+
+const (
+	SexeMan   Sexe = "man"
+	SexeWoman Sexe = "woman"
+	SexeOther Sexe = "other"
+)
+
+func (e *Sexe) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = Sexe(s)
+	case string:
+		*e = Sexe(s)
+	default:
+		return fmt.Errorf("unsupported scan type for Sexe: %T", src)
+	}
+	return nil
+}
+
+type StatusPayment string
+
+const (
+	StatusPaymentActive  StatusPayment = "active"
+	StatusPaymentCancel  StatusPayment = "cancel"
+	StatusPaymentPastDue StatusPayment = "past_due"
+)
+
+func (e *StatusPayment) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = StatusPayment(s)
+	case string:
+		*e = StatusPayment(s)
+	default:
+		return fmt.Errorf("unsupported scan type for StatusPayment: %T", src)
+	}
+	return nil
+}
+
+type Avi struct {
+	ID           uuid.UUID    `json:"id"`
+	CreatedAt    time.Time    `json:"created_at"`
+	UpdatedAt    time.Time    `json:"updated_at"`
+	DeletedAt    sql.NullTime `json:"deleted_at"`
+	UserIDTarget uuid.UUID    `json:"user_id_target"`
+	UserIDWriter uuid.UUID    `json:"user_id_writer"`
+	Note         int32        `json:"note"`
+	Comment      string       `json:"comment"`
+}
+
 type File struct {
 	ID        uuid.UUID      `json:"id"`
 	CreatedAt time.Time      `json:"created_at"`
@@ -41,6 +162,18 @@ type File struct {
 	Url       sql.NullString `json:"url"`
 	Mime      sql.NullString `json:"mime"`
 	Size      sql.NullInt64  `json:"size"`
+}
+
+type Premium struct {
+	ID                   uuid.UUID     `json:"id"`
+	CreatedAt            time.Time     `json:"created_at"`
+	UpdatedAt            time.Time     `json:"updated_at"`
+	DeletedAt            sql.NullTime  `json:"deleted_at"`
+	UserID               uuid.UUID     `json:"user_id"`
+	StartDate            time.Time     `json:"start_date"`
+	StatusPayment        StatusPayment `json:"status_payment"`
+	StripeCustomerID     string        `json:"stripe_customer_id"`
+	StripeSubscriptionID string        `json:"stripe_subscription_id"`
 }
 
 type RefreshToken struct {
@@ -56,13 +189,33 @@ type RefreshToken struct {
 }
 
 type User struct {
-	ID        uuid.UUID      `json:"id"`
-	CreatedAt time.Time      `json:"created_at"`
-	UpdatedAt time.Time      `json:"updated_at"`
-	DeletedAt sql.NullTime   `json:"deleted_at"`
-	Email     string         `json:"email"`
-	Password  string         `json:"password"`
-	Firstname sql.NullString `json:"firstname"`
-	Lastname  sql.NullString `json:"lastname"`
-	Role      Role           `json:"role"`
+	ID             uuid.UUID      `json:"id"`
+	CreatedAt      time.Time      `json:"created_at"`
+	UpdatedAt      time.Time      `json:"updated_at"`
+	DeletedAt      sql.NullTime   `json:"deleted_at"`
+	Email          string         `json:"email"`
+	Password       string         `json:"password"`
+	Firstname      sql.NullString `json:"firstname"`
+	Lastname       sql.NullString `json:"lastname"`
+	Role           []Role         `json:"role"`
+	Age            sql.NullInt32  `json:"age"`
+	Sexe           Sexe           `json:"sexe"`
+	Goals          []Goals        `json:"goals"`
+	IdealPartners  sql.NullString `json:"ideal_partners"`
+	ProfilePicture sql.NullString `json:"profile_picture"`
+	IsPremium      sql.NullBool   `json:"is_premium"`
+	City           sql.NullString `json:"city"`
+	Ask            int32          `json:"ask"`
+	Badge          bool           `json:"badge"`
+	Formule        Formule        `json:"formule"`
+}
+
+type Viewer struct {
+	ID             uuid.UUID    `json:"id"`
+	CreatedAt      time.Time    `json:"created_at"`
+	UpdatedAt      time.Time    `json:"updated_at"`
+	DeletedAt      sql.NullTime `json:"deleted_at"`
+	UserIDViewer   uuid.UUID    `json:"user_id_viewer"`
+	ProfilIDViewed uuid.UUID    `json:"profil_id_viewed"`
+	DateViewed     time.Time    `json:"date_viewed"`
 }

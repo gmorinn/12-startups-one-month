@@ -7,6 +7,7 @@ import (
 	"12-startups-one-month/graph/model"
 	"12-startups-one-month/graph/mypkg"
 	"context"
+	"fmt"
 )
 
 // Signin is the resolver for the signin field.
@@ -25,23 +26,43 @@ func (r *mutationResolver) Refresh(ctx context.Context, refreshToken mypkg.JWT) 
 }
 
 // UpdateUser is the resolver for the updateUser field.
-func (r *mutationResolver) UpdateUser(ctx context.Context, input model.UpdateUserInput) (*model.User, error) {
+func (r *mutationResolver) UpdateUser(ctx context.Context, input model.UpdateUserProfileInput) (*model.User, error) {
 	return r.UserService.UpdateUser(ctx, &input)
 }
 
 // DeleteUser is the resolver for the deleteUser field.
-func (r *mutationResolver) DeleteUser(ctx context.Context, id mypkg.UUID) (*bool, error) {
+func (r *mutationResolver) DeleteUser(ctx context.Context, id mypkg.UUID) (bool, error) {
 	return r.UserService.DeleteUser(ctx, id)
 }
 
 // UpdateRole is the resolver for the updateRole field.
-func (r *mutationResolver) UpdateRole(ctx context.Context, role model.UserType, id mypkg.UUID) (*model.User, error) {
+func (r *mutationResolver) UpdateRole(ctx context.Context, role []model.UserType, id mypkg.UUID) (*model.User, error) {
 	return r.UserService.UpdateRole(ctx, role, id)
 }
 
 // SingleUpload is the resolver for the singleUpload field.
 func (r *mutationResolver) SingleUpload(ctx context.Context, file model.UploadInput) (*model.UploadResponse, error) {
 	return r.FileService.UploadSingleFile(ctx, &file)
+}
+
+// AddViewer is the resolver for the addViewer field.
+func (r *mutationResolver) AddViewer(ctx context.Context, id mypkg.UUID) (bool, error) {
+	panic(fmt.Errorf("not implemented: AddViewer - addViewer"))
+}
+
+// CreateAvis is the resolver for the createAvis field.
+func (r *mutationResolver) CreateAvis(ctx context.Context, input model.AvisInput) (*model.Avis, error) {
+	panic(fmt.Errorf("not implemented: CreateAvis - createAvis"))
+}
+
+// UpdateAvis is the resolver for the updateAvis field.
+func (r *mutationResolver) UpdateAvis(ctx context.Context, input model.AvisInput) (*model.Avis, error) {
+	panic(fmt.Errorf("not implemented: UpdateAvis - updateAvis"))
+}
+
+// DeleteAvis is the resolver for the deleteAvis field.
+func (r *mutationResolver) DeleteAvis(ctx context.Context, id mypkg.UUID) (bool, error) {
+	panic(fmt.Errorf("not implemented: DeleteAvis - deleteAvis"))
 }
 
 // Mutation returns MutationResolver implementation.
