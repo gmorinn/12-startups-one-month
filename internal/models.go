@@ -18,6 +18,7 @@ const (
 	FormuleBasic   Formule = "basic"
 	FormuleGold    Formule = "gold"
 	FormuleDiamond Formule = "diamond"
+	FormuleNone    Formule = "none"
 )
 
 func (e *Formule) Scan(src interface{}) error {
@@ -108,6 +109,7 @@ const (
 	SexeMan   Sexe = "man"
 	SexeWoman Sexe = "woman"
 	SexeOther Sexe = "other"
+	SexeNone  Sexe = "none"
 )
 
 func (e *Sexe) Scan(src interface{}) error {

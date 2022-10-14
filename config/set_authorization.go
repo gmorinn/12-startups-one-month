@@ -106,13 +106,17 @@ func (server *Server) GetUserContext(ctx context.Context) *JwtContent {
 	if !ok {
 		return nil
 	}
-	role, ok := claims["role"].([]string)
+	role, ok := claims["role"].([]interface{})
 	if !ok {
 		return nil
 	}
+	var roles []string
+	for _, r := range role {
+		roles = append(roles, r.(string))
+	}
 	res = &JwtContent{
 		ID:   uuid.MustParse(id),
-		Role: utils.ConvertStringToRole(role),
+		Role: utils.ConvertStringToRole(roles),
 	}
 	return res
 }
@@ -131,9 +135,13 @@ func (server *Server) JwtAuth(ctx context.Context, obj interface{}, next graphql
 func (server *Server) HasRole(ctx context.Context, obj interface{}, next graphql.Resolver, roles []model.UserType) (interface{}, error) {
 	userCtx := server.GetUserContext(ctx)
 
-	if userCtx == nil || utils.HasRole(userCtx.Role, roles) == false {
+	if userCtx == nil {
 		return nil, &gqlerror.Error{
-			Message: "Can't access this resource",
+			Message: "Wrong role, you can't access this resource",
+		}
+	} else if utils.HasRole(userCtx.Role, roles) == false {
+		return nil, &gqlerror.Error{
+			Message: "Wrong role, you can't access this resource",
 		}
 	}
 
@@ -174,6 +182,29 @@ func (server *Server) Binding(ctx context.Context, obj interface{}, next graphql
 				}
 			}
 		}
+	} else if valueType == "*string" {
+		if res.(*string) != nil {
+			tmp := *res.(*string)
+			for _, v := range validations {
+				tmpKey := strings.Split(v, "=")
+				switch tmpKey[0] {
+				case "min":
+					if len(tmp) < utils.StrToInt(tmpKey[1]) {
+						return nil, utils.Gqlerror("must be at least " + tmpKey[1] + " characters")
+					}
+				case "max":
+					if len(tmp) > utils.StrToInt(tmpKey[1]) {
+						return nil, utils.Gqlerror("must be at most " + tmpKey[1] + " characters")
+					}
+				case "with_number":
+					if tmpKey[1] == "true" && !strings.ContainsAny(tmp, "0123456789") {
+						return nil, utils.Gqlerror("must contain at least one number")
+					} else if tmpKey[1] == "false" && strings.ContainsAny(tmp, "0123456789") {
+						return nil, utils.Gqlerror("must not contain number")
+					}
+				}
+			}
+		}
 	} else if valueType == "int" {
 		for _, v := range validations {
 			tmpKey := strings.Split(v, "=")
@@ -188,21 +219,23 @@ func (server *Server) Binding(ctx context.Context, obj interface{}, next graphql
 				}
 			}
 		}
-	} else if valueType[:2] == "[]" {
-		for _, v := range validations {
-			tmpKey := strings.Split(v, "=")
-			switch tmpKey[0] {
-			case "min":
-				if len(res.([]interface{})) < utils.StrToInt(tmpKey[1]) {
-					return nil, utils.Gqlerror("must be at least " + tmpKey[1] + " items")
-				}
-			case "max":
-				if len(res.([]interface{})) > utils.StrToInt(tmpKey[1]) {
-					return nil, utils.Gqlerror("must be at most " + tmpKey[1] + " items")
+	} else if valueType == "*int" {
+		if res.(*int) != nil {
+			tmp := *res.(*int)
+			for _, v := range validations {
+				tmpKey := strings.Split(v, "=")
+				switch tmpKey[0] {
+				case "min":
+					if tmp < utils.StrToInt(tmpKey[1]) {
+						return nil, utils.Gqlerror("must be at least " + tmpKey[1])
+					}
+				case "max":
+					if tmp > utils.StrToInt(tmpKey[1]) {
+						return nil, utils.Gqlerror("must be at most " + tmpKey[1])
+					}
 				}
 			}
 		}
-
 	}
 	return res, nil
 }

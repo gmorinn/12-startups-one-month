@@ -112,7 +112,7 @@ type User struct {
 	Role           []UserType   `json:"role"`
 	Age            *int         `json:"age"`
 	Sexe           *SexeType    `json:"sexe"`
-	Goals          []GoalType   `json:"goals"`
+	Goals          []*GoalType  `json:"goals"`
 	IdealPartner   *string      `json:"ideal_partner"`
 	ProfilePicture *string      `json:"profile_picture"`
 	City           *string      `json:"city"`
@@ -141,17 +141,19 @@ const (
 	FormuleTypeBasic   FormuleType = "BASIC"
 	FormuleTypeGold    FormuleType = "GOLD"
 	FormuleTypeDiamond FormuleType = "DIAMOND"
+	FormuleTypeNone    FormuleType = "NONE"
 )
 
 var AllFormuleType = []FormuleType{
 	FormuleTypeBasic,
 	FormuleTypeGold,
 	FormuleTypeDiamond,
+	FormuleTypeNone,
 }
 
 func (e FormuleType) IsValid() bool {
 	switch e {
-	case FormuleTypeBasic, FormuleTypeGold, FormuleTypeDiamond:
+	case FormuleTypeBasic, FormuleTypeGold, FormuleTypeDiamond, FormuleTypeNone:
 		return true
 	}
 	return false
@@ -239,17 +241,19 @@ const (
 	SexeTypeMan   SexeType = "MAN"
 	SexeTypeWoman SexeType = "WOMAN"
 	SexeTypeOther SexeType = "OTHER"
+	SexeTypeNone  SexeType = "NONE"
 )
 
 var AllSexeType = []SexeType{
 	SexeTypeMan,
 	SexeTypeWoman,
 	SexeTypeOther,
+	SexeTypeNone,
 }
 
 func (e SexeType) IsValid() bool {
 	switch e {
-	case SexeTypeMan, SexeTypeWoman, SexeTypeOther:
+	case SexeTypeMan, SexeTypeWoman, SexeTypeOther, SexeTypeNone:
 		return true
 	}
 	return false

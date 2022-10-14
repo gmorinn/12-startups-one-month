@@ -61,7 +61,7 @@ func (s *AuthService) Signin(ctx context.Context, input *model.SigninInput) (*mo
 }
 
 func (s *AuthService) Signup(ctx context.Context, input *model.SignupInput) (*model.JWTResponse, error) {
-	var response model.JWTResponse
+	var user db.User
 
 	err := s.server.Store.ExecTx(ctx, func(q *db.Queries) error {
 		if input.Password != input.ConfirmPassword {
@@ -78,28 +78,27 @@ func (s *AuthService) Signup(ctx context.Context, input *model.SignupInput) (*mo
 			Email: string(input.Email),
 			Crypt: input.Password,
 		}
-		user, err := q.Signup(ctx, arg)
+		user, err = q.Signup(ctx, arg)
 		if err != nil {
 			return utils.ErrorResponse("ERROR_CREATE_USER", err)
-		}
-		t, r, expt, err := s.server.GenerateJwtToken(user.ID, utils.ConvertRoleToString(user.Role))
-		if err != nil {
-			return utils.ErrorResponse("ERROR_TOKEN", err)
-		}
-		if err := s.server.StoreRefresh(ctx, r, expt, user.ID); err != nil {
-			return utils.ErrorResponse("ERROR_REFRESH_TOKEN", err)
-		}
-		response = model.JWTResponse{
-			AccessToken:  mypkg.JWT(t),
-			RefreshToken: mypkg.JWT(r),
 		}
 		return nil
 	})
 
+	t, r, expt, err := s.server.GenerateJwtToken(user.ID, utils.ConvertRoleToString(user.Role))
+	if err != nil {
+		return nil, utils.ErrorResponse("ERROR_TOKEN", err)
+	}
+	if err := s.server.StoreRefresh(ctx, r, expt, user.ID); err != nil {
+		return nil, utils.ErrorResponse("ERROR_REFRESH_TOKEN", err)
+	}
 	if err != nil {
 		return nil, utils.ErrorResponse("TX_GET_USERS", err)
 	}
-	return &response, nil
+	return &model.JWTResponse{
+		AccessToken:  mypkg.JWT(t),
+		RefreshToken: mypkg.JWT(r),
+	}, nil
 }
 
 func (s *AuthService) RefreshToken(ctx context.Context, refreshToken *mypkg.JWT) (*model.JWTResponse, error) {

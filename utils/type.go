@@ -2,7 +2,6 @@ package utils
 
 import (
 	"database/sql"
-	"strconv"
 	"time"
 
 	"github.com/google/uuid"
@@ -49,11 +48,43 @@ func NullU(u uuid.UUID) string {
 	return ""
 }
 
-// convert string to int using strconv
-func StrToInt(s string) int {
-	i, err := strconv.Atoi(s)
-	if err != nil {
-		return -1
+// PointeurS return sql.NullString from string
+func PointeurS(s *string) sql.NullString {
+	if s == nil {
+		return sql.NullString{}
 	}
-	return i
+	return sql.NullString{String: *s, Valid: true}
+}
+
+// Sql.NullString to *string
+func NullSToPointeurS(s sql.NullString) *string {
+	if s.Valid {
+		return &s.String
+	}
+	return nil
+}
+
+// Sql.NullInt32 to *int32
+func NullI32ToPointeurI32(s sql.NullInt32) *int32 {
+	if s.Valid {
+		return &s.Int32
+	}
+	return nil
+}
+
+// Sql.NullInt32 to *int
+func NullI32ToPointeurI(s sql.NullInt32) *int {
+	if s.Valid {
+		i := int(s.Int32)
+		return &i
+	}
+	return nil
+}
+
+// Sql.NullInt64 to *int64
+func NullI64ToPointeurI64(s sql.NullInt64) *int64 {
+	if s.Valid {
+		return &s.Int64
+	}
+	return nil
 }

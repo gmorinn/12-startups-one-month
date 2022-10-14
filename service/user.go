@@ -7,6 +7,7 @@ import (
 	db "12-startups-one-month/internal"
 	"12-startups-one-month/utils"
 	"context"
+	"database/sql"
 	"errors"
 	"strings"
 
@@ -35,14 +36,26 @@ func SqlUserToGraphUser(sqlUser *db.User) *model.User {
 	if sqlUser == nil {
 		return nil
 	}
+	sexe := model.SexeType(strings.ToUpper(string(sqlUser.Sexe)))
+	formule := model.FormuleType(sqlUser.Formule)
 	return &model.User{
 		ID:        mypkg.UUID(sqlUser.ID.String()),
-		Firstname: &sqlUser.Firstname.String,
-		Lastname:  &sqlUser.Lastname.String,
-		Email:     mypkg.Email(sqlUser.Email),
 		CreatedAt: sqlUser.CreatedAt,
 		UpdatedAt: sqlUser.UpdatedAt,
 		DeletedAt: &sqlUser.DeletedAt.Time,
+		Email:     mypkg.Email(sqlUser.Email),
+		Firstname: utils.NullSToPointeurS(sqlUser.Firstname),
+		Lastname:  utils.NullSToPointeurS(sqlUser.Lastname),
+		Role:      utils.ConvertRoleToUserType(sqlUser.Role),
+		Age:       utils.NullI32ToPointeurI(sqlUser.Age),
+		Sexe:      &sexe,
+		// Goals: sqlUser.Goals,
+		IdealPartner:   utils.NullSToPointeurS(sqlUser.IdealPartners),
+		ProfilePicture: utils.NullSToPointeurS(sqlUser.ProfilePicture),
+		City:           utils.NullSToPointeurS(sqlUser.City),
+		Ask:            int(sqlUser.Ask),
+		Badge:          sqlUser.Badge,
+		Formule:        &formule,
 	}
 }
 
@@ -99,10 +112,37 @@ func (s *UserService) GetUsers(ctx context.Context, limit int, offset int) ([]*m
 func (s *UserService) UpdateUser(ctx context.Context, input *model.UpdateUserProfileInput) (*model.User, error) {
 	var res *model.User = nil
 
+	// get user from context
+	user := s.server.GetUserContext(ctx)
+	if user.ID != uuid.MustParse(string(input.ID)) {
+		return nil, utils.ErrorResponse("UPDATE_USER", errors.New("user is not allowed to update this user"))
+	}
+
 	err := s.server.Store.ExecTx(ctx, func(q *db.Queries) error {
+		var sexe db.Sexe = db.SexeNone
+		if input.Sexe != nil {
+			sexe = db.Sexe(strings.ToLower(string(*input.Sexe)))
+		}
+
+		var age sql.NullInt32 = sql.NullInt32{}
+		if input.Age != nil {
+			age = sql.NullInt32{
+				Int32: int32(*input.Age),
+				Valid: true,
+			}
+		}
+
 		if err := q.UpdateUser(ctx, db.UpdateUserParams{
-			ID:    uuid.MustParse(string(input.ID)),
-			Email: string(input.Email),
+			ID:        uuid.MustParse(string(input.ID)),
+			Email:     string(input.Email),
+			Firstname: utils.PointeurS(input.Firstname),
+			Lastname:  utils.PointeurS(input.Lastname),
+			Age:       age,
+			Sexe:      sexe,
+			// Goals: sqlUser.Goals,
+			IdealPartners:  utils.PointeurS(input.IdealPartner),
+			ProfilePicture: utils.PointeurS(input.ProfilePicture),
+			City:           utils.PointeurS(input.City),
 		}); err != nil {
 			return err
 		}

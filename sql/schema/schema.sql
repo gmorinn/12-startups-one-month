@@ -6,7 +6,6 @@ CREATE TYPE "role" AS ENUM (
   'user'
 );
 
-
 CREATE TYPE "status_payment" AS ENUM (
   'active',
   'cancel',
@@ -16,14 +15,16 @@ CREATE TYPE "status_payment" AS ENUM (
 CREATE TYPE "formule" AS ENUM (
   'basic',
   'gold',
-  'diamond'
+  'diamond',
+  'none'
 );
 
 
 CREATE TYPE "sexe" AS ENUM (
   'man',
   'woman',
-  'other'
+  'other',
+  'none'
 );
 
 CREATE TYPE "goals" AS ENUM (
@@ -69,7 +70,7 @@ CREATE TABLE "users" (
   "lastname" varchar(25) CONSTRAINT lastnamechk CHECK (char_length(lastname) > 1 AND char_length(lastname) <= 25 AND  lastname ~ '^[^0-9]*$') DEFAULT NULL,
   "role" role ARRAY NOT NULL DEFAULT '{user}',
   "age" int CONSTRAINT agechk CHECK (age > 0 AND age < 150) DEFAULT NULL,
-  "sexe" sexe DEFAULT NULL,
+  "sexe" sexe DEFAULT 'none',
   "goals" goals ARRAY DEFAULT NULL,
   "ideal_partners" text DEFAULT NULL,
   "profile_picture" text DEFAULT NULL,
@@ -77,7 +78,7 @@ CREATE TABLE "users" (
   "city" text DEFAULT NULL,
   "ask" int NOT NULL DEFAULT 15 CONSTRAINT askchk CHECK (ask >= 0 AND ask <= 70),
   "badge" boolean NOT NULL DEFAULT false CONSTRAINT badgechk CHECK (badge = (formule = 'diamond' OR formule = 'gold')),
-  "formule" formule DEFAULT NULL
+  "formule" formule DEFAULT 'none'
 );
 
 CREATE TABLE "premium" (

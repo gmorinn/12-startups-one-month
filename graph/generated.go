@@ -846,12 +846,14 @@ enum SexeType {
   MAN
   WOMAN
   OTHER
+  NONE
 }
 
 enum FormuleType {
   BASIC
   GOLD
   DIAMOND
+  NONE
 }
 
 enum GoalType {
@@ -881,7 +883,7 @@ type User {
   role: [UserType!]!
   age: Int
   sexe: SexeType
-  goals: [GoalType!]
+  goals: [GoalType]
   ideal_partner: String
   profile_picture: String
   city: String
@@ -905,7 +907,7 @@ input UpdateUserProfileInput {
   "sexe of the user"
   sexe: SexeType
   "goals of the user"
-  goals: [GoalType!] @binding(validation: "min=0,max=6")
+  goals: [GoalType!]
   "description of his ideal partner"
   ideal_partner: String
   "url of the profile picture"
@@ -3862,9 +3864,9 @@ func (ec *executionContext) _User_goals(ctx context.Context, field graphql.Colle
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.([]model.GoalType)
+	res := resTmp.([]*model.GoalType)
 	fc.Result = res
-	return ec.marshalOGoalType2ᚕ12ᚑstartupsᚑoneᚑmonthᚋgraphᚋmodelᚐGoalTypeᚄ(ctx, field.Selections, res)
+	return ec.marshalOGoalType2ᚕᚖ12ᚑstartupsᚑoneᚑmonthᚋgraphᚋmodelᚐGoalType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_User_goals(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -6522,31 +6524,9 @@ func (ec *executionContext) unmarshalInputUpdateUserProfileInput(ctx context.Con
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("goals"))
-			directive0 := func(ctx context.Context) (interface{}, error) {
-				return ec.unmarshalOGoalType2ᚕ12ᚑstartupsᚑoneᚑmonthᚋgraphᚋmodelᚐGoalTypeᚄ(ctx, v)
-			}
-			directive1 := func(ctx context.Context) (interface{}, error) {
-				validation, err := ec.unmarshalNString2string(ctx, "min=0,max=6")
-				if err != nil {
-					return nil, err
-				}
-				if ec.directives.Binding == nil {
-					return nil, errors.New("directive binding is not implemented")
-				}
-				return ec.directives.Binding(ctx, obj, directive0, validation)
-			}
-
-			tmp, err := directive1(ctx)
+			it.Goals, err = ec.unmarshalOGoalType2ᚕ12ᚑstartupsᚑoneᚑmonthᚋgraphᚋmodelᚐGoalTypeᚄ(ctx, v)
 			if err != nil {
-				return it, graphql.ErrorOnPath(ctx, err)
-			}
-			if data, ok := tmp.([]model.GoalType); ok {
-				it.Goals = data
-			} else if tmp == nil {
-				it.Goals = nil
-			} else {
-				err := fmt.Errorf(`unexpected type %T from directive, should be []12-startups-one-month/graph/model.GoalType`, tmp)
-				return it, graphql.ErrorOnPath(ctx, err)
+				return it, err
 			}
 		case "ideal_partner":
 			var err error
@@ -8206,6 +8186,83 @@ func (ec *executionContext) marshalOGoalType2ᚕ12ᚑstartupsᚑoneᚑmonthᚋgr
 	}
 
 	return ret
+}
+
+func (ec *executionContext) unmarshalOGoalType2ᚕᚖ12ᚑstartupsᚑoneᚑmonthᚋgraphᚋmodelᚐGoalType(ctx context.Context, v interface{}) ([]*model.GoalType, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.GoalType, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalOGoalType2ᚖ12ᚑstartupsᚑoneᚑmonthᚋgraphᚋmodelᚐGoalType(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOGoalType2ᚕᚖ12ᚑstartupsᚑoneᚑmonthᚋgraphᚋmodelᚐGoalType(ctx context.Context, sel ast.SelectionSet, v []*model.GoalType) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOGoalType2ᚖ12ᚑstartupsᚑoneᚑmonthᚋgraphᚋmodelᚐGoalType(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalOGoalType2ᚖ12ᚑstartupsᚑoneᚑmonthᚋgraphᚋmodelᚐGoalType(ctx context.Context, v interface{}) (*model.GoalType, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.GoalType)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOGoalType2ᚖ12ᚑstartupsᚑoneᚑmonthᚋgraphᚋmodelᚐGoalType(ctx context.Context, sel ast.SelectionSet, v *model.GoalType) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) unmarshalOInt2ᚖint(ctx context.Context, v interface{}) (*int, error) {

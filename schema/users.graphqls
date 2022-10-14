@@ -11,12 +11,14 @@ enum SexeType {
   MAN
   WOMAN
   OTHER
+  NONE
 }
 
 enum FormuleType {
   BASIC
   GOLD
   DIAMOND
+  NONE
 }
 
 enum GoalType {
@@ -46,7 +48,7 @@ type User {
   role: [UserType!]!
   age: Int
   sexe: SexeType
-  goals: [GoalType!]
+  goals: [GoalType]
   ideal_partner: String
   profile_picture: String
   city: String
@@ -70,7 +72,7 @@ input UpdateUserProfileInput {
   "sexe of the user"
   sexe: SexeType
   "goals of the user"
-  goals: [GoalType!] @binding(validation: "min=0,max=6")
+  goals: [GoalType!]
   "description of his ideal partner"
   ideal_partner: String
   "url of the profile picture"
