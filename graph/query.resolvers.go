@@ -6,7 +6,6 @@ package graph
 import (
 	"12-startups-one-month/graph/model"
 	"context"
-	"fmt"
 )
 
 // User is the resolver for the user field.
@@ -19,14 +18,14 @@ func (r *queryResolver) Users(ctx context.Context, limit int, offset int) ([]*mo
 	return r.UserService.GetUsers(ctx, limit, offset)
 }
 
-// Views is the resolver for the views field.
-func (r *queryResolver) Views(ctx context.Context, id string) ([]*model.Viewer, error) {
+// GetViewsByUserID is the resolver for the getViewsByUserId field.
+func (r *queryResolver) GetViewsByUserID(ctx context.Context, id string) ([]*model.Viewer, error) {
 	return r.ViewerService.GetViewersByUserID(ctx, id)
 }
 
-// Avis is the resolver for the avis field.
-func (r *queryResolver) Avis(ctx context.Context, id string) ([]*model.Avis, error) {
-	panic(fmt.Errorf("not implemented: Avis - avis"))
+// GetAvisByUserID is the resolver for the getAvisByUserId field.
+func (r *queryResolver) GetAvisByUserID(ctx context.Context, id string) ([]*model.Avis, error) {
+	return r.AvisService.GetAvisByUserID(ctx, id)
 }
 
 // Query returns QueryResolver implementation.

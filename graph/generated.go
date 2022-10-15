@@ -79,10 +79,10 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Avis  func(childComplexity int, id string) int
-		User  func(childComplexity int, id string) int
-		Users func(childComplexity int, limit int, offset int) int
-		Views func(childComplexity int, id string) int
+		GetAvisByUserID  func(childComplexity int, id string) int
+		GetViewsByUserID func(childComplexity int, id string) int
+		User             func(childComplexity int, id string) int
+		Users            func(childComplexity int, limit int, offset int) int
 	}
 
 	UploadResponse struct {
@@ -139,8 +139,8 @@ type MutationResolver interface {
 type QueryResolver interface {
 	User(ctx context.Context, id string) (*model.User, error)
 	Users(ctx context.Context, limit int, offset int) ([]*model.User, error)
-	Views(ctx context.Context, id string) ([]*model.Viewer, error)
-	Avis(ctx context.Context, id string) ([]*model.Avis, error)
+	GetViewsByUserID(ctx context.Context, id string) ([]*model.Viewer, error)
+	GetAvisByUserID(ctx context.Context, id string) ([]*model.Avis, error)
 }
 
 type executableSchema struct {
@@ -360,17 +360,29 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.UpdateUser(childComplexity, args["input"].(model.UpdateUserProfileInput)), true
 
-	case "Query.avis":
-		if e.complexity.Query.Avis == nil {
+	case "Query.getAvisByUserId":
+		if e.complexity.Query.GetAvisByUserID == nil {
 			break
 		}
 
-		args, err := ec.field_Query_avis_args(context.TODO(), rawArgs)
+		args, err := ec.field_Query_getAvisByUserId_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Query.Avis(childComplexity, args["id"].(string)), true
+		return e.complexity.Query.GetAvisByUserID(childComplexity, args["id"].(string)), true
+
+	case "Query.getViewsByUserId":
+		if e.complexity.Query.GetViewsByUserID == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getViewsByUserId_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetViewsByUserID(childComplexity, args["id"].(string)), true
 
 	case "Query.user":
 		if e.complexity.Query.User == nil {
@@ -395,18 +407,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Users(childComplexity, args["limit"].(int), args["offset"].(int)), true
-
-	case "Query.views":
-		if e.complexity.Query.Views == nil {
-			break
-		}
-
-		args, err := ec.field_Query_views_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.Views(childComplexity, args["id"].(string)), true
 
 	case "UploadResponse.name":
 		if e.complexity.UploadResponse.Name == nil {
@@ -801,13 +801,13 @@ input SignupInput {
     # ********** VIEWERS QUERY *****************
     #
     "returns all the views of a user based on his id"
-    views(id: String! @binding(validation: "uuid")): [Viewer] @hasRole(role: [ADMIN, USER]) @jwtAuth
+    getViewsByUserId(id: String! @binding(validation: "uuid")): [Viewer] @hasRole(role: [ADMIN, USER]) @jwtAuth
 
     #
     # ********** AVIS QUERY *****************
     #
     "returns all the AVIS of a user based on his id"
-    avis(id: String! @binding(validation: "uuid")): [Avis] @hasRole(role: [ADMIN, USER]) @jwtAuth
+    getAvisByUserId(id: String! @binding(validation: "uuid")): [Avis] @hasRole(role: [ADMIN, USER]) @jwtAuth
 }`, BuiltIn: false},
 	{Name: "../schema/schema.graphqls", Input: `scalar Time
 scalar Upload
@@ -1223,7 +1223,39 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_avis_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Query_getAvisByUserId_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNString2string(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			validation, err := ec.unmarshalNString2string(ctx, "uuid")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.Binding == nil {
+				return nil, errors.New("directive binding is not implemented")
+			}
+			return ec.directives.Binding(ctx, rawArgs, directive0, validation)
+		}
+
+		tmp, err = directive1(ctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if data, ok := tmp.(string); ok {
+			arg0 = data
+		} else {
+			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_getViewsByUserId_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
@@ -1308,38 +1340,6 @@ func (ec *executionContext) field_Query_users_args(ctx context.Context, rawArgs 
 		}
 	}
 	args["offset"] = arg1
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_views_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNString2string(ctx, tmp) }
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			validation, err := ec.unmarshalNString2string(ctx, "uuid")
-			if err != nil {
-				return nil, err
-			}
-			if ec.directives.Binding == nil {
-				return nil, errors.New("directive binding is not implemented")
-			}
-			return ec.directives.Binding(ctx, rawArgs, directive0, validation)
-		}
-
-		tmp, err = directive1(ctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if data, ok := tmp.(string); ok {
-			arg0 = data
-		} else {
-			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
-		}
-	}
-	args["id"] = arg0
 	return args, nil
 }
 
@@ -3048,8 +3048,8 @@ func (ec *executionContext) fieldContext_Query_users(ctx context.Context, field 
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_views(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_views(ctx, field)
+func (ec *executionContext) _Query_getViewsByUserId(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_getViewsByUserId(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -3063,7 +3063,7 @@ func (ec *executionContext) _Query_views(ctx context.Context, field graphql.Coll
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		directive0 := func(rctx context.Context) (interface{}, error) {
 			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Query().Views(rctx, fc.Args["id"].(string))
+			return ec.resolvers.Query().GetViewsByUserID(rctx, fc.Args["id"].(string))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
 			role, err := ec.unmarshalNUserType2ᚕ12ᚑstartupsᚑoneᚑmonthᚋgraphᚋmodelᚐUserTypeᚄ(ctx, []interface{}{"ADMIN", "USER"})
@@ -3106,7 +3106,7 @@ func (ec *executionContext) _Query_views(ctx context.Context, field graphql.Coll
 	return ec.marshalOViewer2ᚕᚖ12ᚑstartupsᚑoneᚑmonthᚋgraphᚋmodelᚐViewer(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Query_views(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Query_getViewsByUserId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Query",
 		Field:      field,
@@ -3139,15 +3139,15 @@ func (ec *executionContext) fieldContext_Query_views(ctx context.Context, field 
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_views_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Query_getViewsByUserId_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_avis(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_avis(ctx, field)
+func (ec *executionContext) _Query_getAvisByUserId(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_getAvisByUserId(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -3161,7 +3161,7 @@ func (ec *executionContext) _Query_avis(ctx context.Context, field graphql.Colle
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		directive0 := func(rctx context.Context) (interface{}, error) {
 			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Query().Avis(rctx, fc.Args["id"].(string))
+			return ec.resolvers.Query().GetAvisByUserID(rctx, fc.Args["id"].(string))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
 			role, err := ec.unmarshalNUserType2ᚕ12ᚑstartupsᚑoneᚑmonthᚋgraphᚋmodelᚐUserTypeᚄ(ctx, []interface{}{"ADMIN", "USER"})
@@ -3204,7 +3204,7 @@ func (ec *executionContext) _Query_avis(ctx context.Context, field graphql.Colle
 	return ec.marshalOAvis2ᚕᚖ12ᚑstartupsᚑoneᚑmonthᚋgraphᚋmodelᚐAvis(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Query_avis(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Query_getAvisByUserId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Query",
 		Field:      field,
@@ -3239,7 +3239,7 @@ func (ec *executionContext) fieldContext_Query_avis(ctx context.Context, field g
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_avis_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Query_getAvisByUserId_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -7219,7 +7219,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
-		case "views":
+		case "getViewsByUserId":
 			field := field
 
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -7228,7 +7228,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_views(ctx, field)
+				res = ec._Query_getViewsByUserId(ctx, field)
 				return res
 			}
 
@@ -7239,7 +7239,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
-		case "avis":
+		case "getAvisByUserId":
 			field := field
 
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -7248,7 +7248,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_avis(ctx, field)
+				res = ec._Query_getAvisByUserId(ctx, field)
 				return res
 			}
 

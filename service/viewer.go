@@ -26,7 +26,7 @@ func NewViewerService(server *config.Server) *ViewerService {
 	}
 }
 
-func SqlViewerToGraphViewer(sqlViewer *db.Viewer) *model.Viewer {
+func sqlViewerToGraphViewer(sqlViewer *db.Viewer) *model.Viewer {
 	if sqlViewer == nil {
 		return nil
 	}
@@ -67,7 +67,7 @@ func (s *ViewerService) AddViewer(ctx context.Context, user_viewed string) (*mod
 		}
 
 		// convert to graphql model
-		res = SqlViewerToGraphViewer(&viewer)
+		res = sqlViewerToGraphViewer(&viewer)
 		return nil
 	})
 
@@ -90,7 +90,7 @@ func (s *ViewerService) GetViewersByUserID(ctx context.Context, user_id string) 
 		viewers = utils.RemoveDuplicateViewer(viewers)
 
 		for _, viewer := range viewers {
-			res = append(res, SqlViewerToGraphViewer(&viewer))
+			res = append(res, sqlViewerToGraphViewer(&viewer))
 		}
 		return nil
 	})

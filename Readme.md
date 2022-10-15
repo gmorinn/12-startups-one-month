@@ -14,3 +14,4 @@ Create sql commands
 - Make service folder and resolver.go
 
 
+<!-- update avis to finished -->

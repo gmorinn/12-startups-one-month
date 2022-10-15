@@ -13,4 +13,5 @@ type Resolver struct {
 	AuthService   service.IAuthService
 	FileService   service.IFileService
 	ViewerService service.IViewerService
+	AvisService   service.IAvisService
 }

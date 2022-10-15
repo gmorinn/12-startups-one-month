@@ -16,7 +16,7 @@ type Querier interface {
 	CheckEmailExist(ctx context.Context, email string) (bool, error)
 	CheckUserByID(ctx context.Context, id uuid.UUID) (bool, error)
 	CheckViewByID(ctx context.Context, id uuid.UUID) (bool, error)
-	CreateAvis(ctx context.Context, arg CreateAvisParams) error
+	CreateAvis(ctx context.Context, arg CreateAvisParams) (Avi, error)
 	CreateFile(ctx context.Context, arg CreateFileParams) (CreateFileRow, error)
 	CreateRefreshToken(ctx context.Context, arg CreateRefreshTokenParams) error
 	CreateView(ctx context.Context, arg CreateViewParams) (Viewer, error)
@@ -30,6 +30,7 @@ type Querier interface {
 	GetAllUser(ctx context.Context, arg GetAllUserParams) ([]User, error)
 	GetAllView(ctx context.Context, arg GetAllViewParams) ([]Viewer, error)
 	GetAvisByID(ctx context.Context, id uuid.UUID) (Avi, error)
+	GetAvisByUserID(ctx context.Context, userIDTarget uuid.UUID) ([]Avi, error)
 	GetFileByURL(ctx context.Context, url sql.NullString) (File, error)
 	GetOldRefreshToken(ctx context.Context) (RefreshToken, error)
 	GetRefreshToken(ctx context.Context, token string) (GetRefreshTokenRow, error)

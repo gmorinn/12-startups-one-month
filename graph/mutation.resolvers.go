@@ -7,7 +7,6 @@ import (
 	"12-startups-one-month/graph/model"
 	"12-startups-one-month/graph/mypkg"
 	"context"
-	"fmt"
 )
 
 // Signin is the resolver for the signin field.
@@ -52,17 +51,17 @@ func (r *mutationResolver) AddViewer(ctx context.Context, userViewed string) (*m
 
 // CreateAvis is the resolver for the createAvis field.
 func (r *mutationResolver) CreateAvis(ctx context.Context, input model.AvisInput) (*model.Avis, error) {
-	panic(fmt.Errorf("not implemented: CreateAvis - createAvis"))
+	return r.AvisService.CreateAvis(ctx, &input)
 }
 
 // UpdateAvis is the resolver for the updateAvis field.
 func (r *mutationResolver) UpdateAvis(ctx context.Context, input model.AvisInput) (*model.Avis, error) {
-	panic(fmt.Errorf("not implemented: UpdateAvis - updateAvis"))
+	return r.AvisService.UpdateAvis(ctx, &input)
 }
 
 // DeleteAvis is the resolver for the deleteAvis field.
 func (r *mutationResolver) DeleteAvis(ctx context.Context, id string) (bool, error) {
-	panic(fmt.Errorf("not implemented: DeleteAvis - deleteAvis"))
+	return r.AvisService.DeleteAvis(ctx, id)
 }
 
 // Mutation returns MutationResolver implementation.

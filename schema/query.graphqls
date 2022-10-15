@@ -13,11 +13,11 @@ type Query {
     # ********** VIEWERS QUERY *****************
     #
     "returns all the views of a user based on his id"
-    views(id: String! @binding(validation: "uuid")): [Viewer] @hasRole(role: [ADMIN, USER]) @jwtAuth
+    getViewsByUserId(id: String! @binding(validation: "uuid")): [Viewer] @hasRole(role: [ADMIN, USER]) @jwtAuth
 
     #
     # ********** AVIS QUERY *****************
     #
     "returns all the AVIS of a user based on his id"
-    avis(id: String! @binding(validation: "uuid")): [Avis] @hasRole(role: [ADMIN, USER]) @jwtAuth
+    getAvisByUserId(id: String! @binding(validation: "uuid")): [Avis] @hasRole(role: [ADMIN, USER]) @jwtAuth
 }

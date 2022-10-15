@@ -12,6 +12,11 @@ WHERE id = $1
 AND deleted_at IS NULL
 LIMIT 1;
 
+-- name: GetAvisByUserID :many
+SELECT * FROM avis
+WHERE user_id_target = $1
+AND deleted_at IS NULL;
+
 -- name: DeleteAvisByID :exec
 UPDATE
     avis
@@ -30,9 +35,10 @@ SET
 WHERE
     id = $1;
 
--- name: CreateAvis :exec
+-- name: CreateAvis :one
 INSERT INTO avis (user_id_target, user_id_writer, comment, note)
-VALUES ($1, $2, $3, $4);
+VALUES ($1, $2, $3, $4)
+RETURNING *;
 
 -- name: CheckAvisByID :one
 SELECT EXISTS (

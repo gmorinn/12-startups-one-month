@@ -31,7 +31,7 @@ func NewUserService(server *config.Server) *UserService {
 	}
 }
 
-func SqlUserToGraphUser(sqlUser *db.User) *model.User {
+func sqlUserToGraphUser(sqlUser *db.User) *model.User {
 	if sqlUser == nil {
 		return nil
 	}
@@ -66,7 +66,7 @@ func (s *UserService) GetUser(ctx context.Context, id string) (*model.User, erro
 		if err != nil {
 			return err
 		}
-		res = SqlUserToGraphUser(&sqlUser)
+		res = sqlUserToGraphUser(&sqlUser)
 		return nil
 	})
 
@@ -97,7 +97,7 @@ func (s *UserService) GetUsers(ctx context.Context, limit int, offset int) ([]*m
 			return err
 		}
 		for _, sqlUser := range sqlUsers {
-			res = append(res, SqlUserToGraphUser(&sqlUser))
+			res = append(res, sqlUserToGraphUser(&sqlUser))
 		}
 		return nil
 	})
@@ -150,7 +150,7 @@ func (s *UserService) UpdateUser(ctx context.Context, input *model.UpdateUserPro
 		if err != nil {
 			return err
 		}
-		res = SqlUserToGraphUser(&sqlUser)
+		res = sqlUserToGraphUser(&sqlUser)
 		return nil
 	})
 
@@ -204,7 +204,7 @@ func (s *UserService) UpdateRole(ctx context.Context, role []model.UserType, id 
 		if err != nil {
 			return err
 		}
-		res = SqlUserToGraphUser(&sqlUser)
+		res = sqlUserToGraphUser(&sqlUser)
 		return nil
 	})
 

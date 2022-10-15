@@ -27,9 +27,10 @@ func (q *Queries) CheckAvisByID(ctx context.Context, id uuid.UUID) (bool, error)
 	return exists, err
 }
 
-const createAvis = `-- name: CreateAvis :exec
+const createAvis = `-- name: CreateAvis :one
 INSERT INTO avis (user_id_target, user_id_writer, comment, note)
 VALUES ($1, $2, $3, $4)
+RETURNING id, created_at, updated_at, deleted_at, user_id_target, user_id_writer, note, comment
 `
 
 type CreateAvisParams struct {
@@ -39,14 +40,25 @@ type CreateAvisParams struct {
 	Note         int32     `json:"note"`
 }
 
-func (q *Queries) CreateAvis(ctx context.Context, arg CreateAvisParams) error {
-	_, err := q.db.ExecContext(ctx, createAvis,
+func (q *Queries) CreateAvis(ctx context.Context, arg CreateAvisParams) (Avi, error) {
+	row := q.db.QueryRowContext(ctx, createAvis,
 		arg.UserIDTarget,
 		arg.UserIDWriter,
 		arg.Comment,
 		arg.Note,
 	)
-	return err
+	var i Avi
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
+		&i.UserIDTarget,
+		&i.UserIDWriter,
+		&i.Note,
+		&i.Comment,
+	)
+	return i, err
 }
 
 const deleteAvisByID = `-- name: DeleteAvisByID :exec
@@ -137,6 +149,44 @@ func (q *Queries) GetAvisByID(ctx context.Context, id uuid.UUID) (Avi, error) {
 		&i.Comment,
 	)
 	return i, err
+}
+
+const getAvisByUserID = `-- name: GetAvisByUserID :many
+SELECT id, created_at, updated_at, deleted_at, user_id_target, user_id_writer, note, comment FROM avis
+WHERE user_id_target = $1
+AND deleted_at IS NULL
+`
+
+func (q *Queries) GetAvisByUserID(ctx context.Context, userIDTarget uuid.UUID) ([]Avi, error) {
+	rows, err := q.db.QueryContext(ctx, getAvisByUserID, userIDTarget)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Avi{}
+	for rows.Next() {
+		var i Avi
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
+			&i.UserIDTarget,
+			&i.UserIDWriter,
+			&i.Note,
+			&i.Comment,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const updateAvis = `-- name: UpdateAvis :exec
