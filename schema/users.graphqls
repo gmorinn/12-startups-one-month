@@ -38,11 +38,11 @@ enum GoalType {
 
 "All fields that represent a user"
 type User {
-  id: UUID!
+  id: String!
   created_at: Time!
   deleted_at: Time
   updated_at: Time!
-  email: Email!
+  email: String!
   firstname: String
   lastname: String
   role: [UserType!]!
@@ -60,9 +60,9 @@ type User {
 "payload send when you a user want to update his profile"
 input UpdateUserProfileInput {
   "id of the user (required)"
-  id: UUID!
+  id: String! @binding(validation: "uuid")
   "email of the user (required)"
-  email: Email!
+  email: String! @binding(validation: "email")
   "firstname of the user"
   firstname: String @binding(validation: "min=2,max=25,with_number=false")
   "lastname of the user"

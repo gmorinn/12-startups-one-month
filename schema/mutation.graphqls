@@ -16,9 +16,9 @@ type Mutation {
     "update a user"
     updateUser(input: UpdateUserProfileInput!): User @jwtAuth @hasRole(role: [ADMIN, USER])
     "delete a user"
-    deleteUser(id: UUID!): Boolean! @jwtAuth @hasRole(role: [ADMIN, USER])
+    deleteUser(id: String! @binding(validation: "uuid")): Boolean! @jwtAuth @hasRole(role: [ADMIN, USER])
     "update the user's role"
-    updateRole(role: [UserType!]!, id:UUID!): User! @hasRole(role: [ADMIN]) @jwtAuth
+    updateRole(role: [UserType!]!, id:String! @binding(validation: "uuid")): User! @hasRole(role: [ADMIN]) @jwtAuth
 
 
     #
@@ -33,7 +33,7 @@ type Mutation {
     # ********** VIEWERS MUTATION *****************
     #
     "add a viewer based on the user's id and the profil id viewed"
-    addViewer(id: UUID!): Boolean! @jwtAuth @hasRole(role: [ADMIN, USER])
+    addViewer(user_id: String! @binding(validation: "uuid"), user_viewed: String! @binding(validation: "uuid")): Viewer! @jwtAuth @hasRole(role: [ADMIN, USER])
 
 
     #
@@ -44,5 +44,5 @@ type Mutation {
     "update an avis"
     updateAvis(input: AvisInput!): Avis! @jwtAuth @hasRole(role: [ADMIN, USER])
     "delete an avis"
-    deleteAvis(id: UUID!): Boolean! @jwtAuth @hasRole(role: [ADMIN, USER])
+    deleteAvis(id: String! @binding(validation: "uuid")): Boolean! @jwtAuth @hasRole(role: [ADMIN, USER])
 }

@@ -3,7 +3,7 @@ type Query {
     # ********** USERS QUERY *****************
     #
     "returns one user by his id precising in the payload"
-    user(id:UUID!): User @jwtAuth @hasRole(role: [ADMIN, USER])
+    user(id:String! @binding(validation: "uuid")): User @jwtAuth @hasRole(role: [ADMIN, USER])
     "returns all users with a limit precising in the payload"
     users(limit: Int!, offset: Int!): [User] @hasRole(role: [ADMIN, USER]) @jwtAuth
 
@@ -13,11 +13,11 @@ type Query {
     # ********** VIEWERS QUERY *****************
     #
     "returns all the views of a user based on his id"
-    views(id: UUID!): [Viewer] @hasRole(role: [ADMIN, USER]) @jwtAuth
+    views(id: String! @binding(validation: "uuid")): [Viewer] @hasRole(role: [ADMIN, USER]) @jwtAuth
 
     #
     # ********** AVIS QUERY *****************
     #
     "returns all the AVIS of a user based on his id"
-    avis(id: UUID!): [Avis] @hasRole(role: [ADMIN, USER]) @jwtAuth
+    avis(id: String! @binding(validation: "uuid")): [Avis] @hasRole(role: [ADMIN, USER]) @jwtAuth
 }

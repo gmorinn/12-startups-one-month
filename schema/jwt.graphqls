@@ -7,14 +7,14 @@ type JWTResponse {
 
 input SigninInput {
   "email of the user"
-  email: Email!
+  email: String! @binding(validation: "email")
   "password of the user"
   password: String! @binding(validation: "min=6,max=255,with_number=true")
 }
 
 input SignupInput {
   "email of the user"
-  email: Email!
+  email: String! @binding(validation: "email")
   "password of the user"
   password: String! @binding(validation: "min=6,max=255,with_number=true")
   "confirm password of the user"

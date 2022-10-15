@@ -14,12 +14,12 @@ import (
 
 // all fields that represent an 'avis'
 type Avis struct {
-	ID           mypkg.UUID `json:"id"`
+	ID           string     `json:"id"`
 	CreatedAt    time.Time  `json:"created_at"`
 	DeletedAt    *time.Time `json:"deleted_at"`
 	UpdatedAt    time.Time  `json:"updated_at"`
-	UserIDTarget mypkg.UUID `json:"user_id_target"`
-	UserIDWriter mypkg.UUID `json:"user_id_writer"`
+	UserIDTarget string     `json:"user_id_target"`
+	UserIDWriter string     `json:"user_id_writer"`
 	Note         int        `json:"note"`
 	Comment      string     `json:"comment"`
 }
@@ -27,9 +27,9 @@ type Avis struct {
 // payload send when a user give an avis
 type AvisInput struct {
 	// correspond of the user who receive the avis
-	UserIDTarget mypkg.UUID `json:"user_id_target"`
+	UserIDTarget string `json:"user_id_target"`
 	// correspond of the user who give the avis
-	UserIDWriter mypkg.UUID `json:"user_id_writer"`
+	UserIDWriter string `json:"user_id_writer"`
 	// note of the avis
 	Note int `json:"note"`
 	// comment of the avis
@@ -45,14 +45,14 @@ type JWTResponse struct {
 
 type SigninInput struct {
 	// email of the user
-	Email mypkg.Email `json:"email"`
+	Email string `json:"email"`
 	// password of the user
 	Password string `json:"password"`
 }
 
 type SignupInput struct {
 	// email of the user
-	Email mypkg.Email `json:"email"`
+	Email string `json:"email"`
 	// password of the user
 	Password string `json:"password"`
 	// confirm password of the user
@@ -62,9 +62,9 @@ type SignupInput struct {
 // payload send when you a user want to update his profile
 type UpdateUserProfileInput struct {
 	// id of the user (required)
-	ID mypkg.UUID `json:"id"`
+	ID string `json:"id"`
 	// email of the user (required)
-	Email mypkg.Email `json:"email"`
+	Email string `json:"email"`
 	// firstname of the user
 	Firstname *string `json:"firstname"`
 	// lastname of the user
@@ -102,11 +102,11 @@ type UploadResponse struct {
 
 // All fields that represent a user
 type User struct {
-	ID             mypkg.UUID   `json:"id"`
+	ID             string       `json:"id"`
 	CreatedAt      time.Time    `json:"created_at"`
 	DeletedAt      *time.Time   `json:"deleted_at"`
 	UpdatedAt      time.Time    `json:"updated_at"`
-	Email          mypkg.Email  `json:"email"`
+	Email          string       `json:"email"`
 	Firstname      *string      `json:"firstname"`
 	Lastname       *string      `json:"lastname"`
 	Role           []UserType   `json:"role"`
@@ -123,14 +123,14 @@ type User struct {
 
 // All fields that represent the table viewers
 type Viewer struct {
-	ID        mypkg.UUID `json:"id"`
+	ID        string     `json:"id"`
 	CreatedAt time.Time  `json:"created_at"`
 	DeletedAt *time.Time `json:"deleted_at"`
 	UpdatedAt time.Time  `json:"updated_at"`
 	// The name of the viewer
-	UserIDViewer mypkg.UUID `json:"user_id_viewer"`
+	UserIDViewer string `json:"user_id_viewer"`
 	// The name of the profile he is viewing
-	ProfileIDViewed mypkg.UUID `json:"profile_id_viewed"`
+	ProfileIDViewed string `json:"profile_id_viewed"`
 	// the date where the viewer was watching the profile
 	DateViewed time.Time `json:"date_viewed"`
 }

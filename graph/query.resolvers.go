@@ -5,13 +5,12 @@ package graph
 
 import (
 	"12-startups-one-month/graph/model"
-	"12-startups-one-month/graph/mypkg"
 	"context"
 	"fmt"
 )
 
 // User is the resolver for the user field.
-func (r *queryResolver) User(ctx context.Context, id mypkg.UUID) (*model.User, error) {
+func (r *queryResolver) User(ctx context.Context, id string) (*model.User, error) {
 	return r.UserService.GetUser(ctx, id)
 }
 
@@ -21,12 +20,12 @@ func (r *queryResolver) Users(ctx context.Context, limit int, offset int) ([]*mo
 }
 
 // Views is the resolver for the views field.
-func (r *queryResolver) Views(ctx context.Context, id mypkg.UUID) ([]*model.Viewer, error) {
-	panic(fmt.Errorf("not implemented: Views - views"))
+func (r *queryResolver) Views(ctx context.Context, id string) ([]*model.Viewer, error) {
+	return r.ViewerService.GetViewersByUserID(ctx, id)
 }
 
 // Avis is the resolver for the avis field.
-func (r *queryResolver) Avis(ctx context.Context, id mypkg.UUID) ([]*model.Avis, error) {
+func (r *queryResolver) Avis(ctx context.Context, id string) ([]*model.Avis, error) {
 	panic(fmt.Errorf("not implemented: Avis - avis"))
 }
 

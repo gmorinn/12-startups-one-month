@@ -65,24 +65,24 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		AddViewer    func(childComplexity int, id mypkg.UUID) int
+		AddViewer    func(childComplexity int, userID string, userViewed string) int
 		CreateAvis   func(childComplexity int, input model.AvisInput) int
-		DeleteAvis   func(childComplexity int, id mypkg.UUID) int
-		DeleteUser   func(childComplexity int, id mypkg.UUID) int
+		DeleteAvis   func(childComplexity int, id string) int
+		DeleteUser   func(childComplexity int, id string) int
 		Refresh      func(childComplexity int, refreshToken mypkg.JWT) int
 		Signin       func(childComplexity int, input model.SigninInput) int
 		Signup       func(childComplexity int, input model.SignupInput) int
 		SingleUpload func(childComplexity int, file model.UploadInput) int
 		UpdateAvis   func(childComplexity int, input model.AvisInput) int
-		UpdateRole   func(childComplexity int, role []model.UserType, id mypkg.UUID) int
+		UpdateRole   func(childComplexity int, role []model.UserType, id string) int
 		UpdateUser   func(childComplexity int, input model.UpdateUserProfileInput) int
 	}
 
 	Query struct {
-		Avis  func(childComplexity int, id mypkg.UUID) int
-		User  func(childComplexity int, id mypkg.UUID) int
+		Avis  func(childComplexity int, id string) int
+		User  func(childComplexity int, id string) int
 		Users func(childComplexity int, limit int, offset int) int
-		Views func(childComplexity int, id mypkg.UUID) int
+		Views func(childComplexity int, id string) int
 	}
 
 	UploadResponse struct {
@@ -128,19 +128,19 @@ type MutationResolver interface {
 	Signup(ctx context.Context, input model.SignupInput) (*model.JWTResponse, error)
 	Refresh(ctx context.Context, refreshToken mypkg.JWT) (*model.JWTResponse, error)
 	UpdateUser(ctx context.Context, input model.UpdateUserProfileInput) (*model.User, error)
-	DeleteUser(ctx context.Context, id mypkg.UUID) (bool, error)
-	UpdateRole(ctx context.Context, role []model.UserType, id mypkg.UUID) (*model.User, error)
+	DeleteUser(ctx context.Context, id string) (bool, error)
+	UpdateRole(ctx context.Context, role []model.UserType, id string) (*model.User, error)
 	SingleUpload(ctx context.Context, file model.UploadInput) (*model.UploadResponse, error)
-	AddViewer(ctx context.Context, id mypkg.UUID) (bool, error)
+	AddViewer(ctx context.Context, userID string, userViewed string) (*model.Viewer, error)
 	CreateAvis(ctx context.Context, input model.AvisInput) (*model.Avis, error)
 	UpdateAvis(ctx context.Context, input model.AvisInput) (*model.Avis, error)
-	DeleteAvis(ctx context.Context, id mypkg.UUID) (bool, error)
+	DeleteAvis(ctx context.Context, id string) (bool, error)
 }
 type QueryResolver interface {
-	User(ctx context.Context, id mypkg.UUID) (*model.User, error)
+	User(ctx context.Context, id string) (*model.User, error)
 	Users(ctx context.Context, limit int, offset int) ([]*model.User, error)
-	Views(ctx context.Context, id mypkg.UUID) ([]*model.Viewer, error)
-	Avis(ctx context.Context, id mypkg.UUID) ([]*model.Avis, error)
+	Views(ctx context.Context, id string) ([]*model.Viewer, error)
+	Avis(ctx context.Context, id string) ([]*model.Avis, error)
 }
 
 type executableSchema struct {
@@ -238,7 +238,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.AddViewer(childComplexity, args["id"].(mypkg.UUID)), true
+		return e.complexity.Mutation.AddViewer(childComplexity, args["user_id"].(string), args["user_viewed"].(string)), true
 
 	case "Mutation.createAvis":
 		if e.complexity.Mutation.CreateAvis == nil {
@@ -262,7 +262,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.DeleteAvis(childComplexity, args["id"].(mypkg.UUID)), true
+		return e.complexity.Mutation.DeleteAvis(childComplexity, args["id"].(string)), true
 
 	case "Mutation.deleteUser":
 		if e.complexity.Mutation.DeleteUser == nil {
@@ -274,7 +274,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.DeleteUser(childComplexity, args["id"].(mypkg.UUID)), true
+		return e.complexity.Mutation.DeleteUser(childComplexity, args["id"].(string)), true
 
 	case "Mutation.refresh":
 		if e.complexity.Mutation.Refresh == nil {
@@ -346,7 +346,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateRole(childComplexity, args["role"].([]model.UserType), args["id"].(mypkg.UUID)), true
+		return e.complexity.Mutation.UpdateRole(childComplexity, args["role"].([]model.UserType), args["id"].(string)), true
 
 	case "Mutation.updateUser":
 		if e.complexity.Mutation.UpdateUser == nil {
@@ -370,7 +370,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Avis(childComplexity, args["id"].(mypkg.UUID)), true
+		return e.complexity.Query.Avis(childComplexity, args["id"].(string)), true
 
 	case "Query.user":
 		if e.complexity.Query.User == nil {
@@ -382,7 +382,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.User(childComplexity, args["id"].(mypkg.UUID)), true
+		return e.complexity.Query.User(childComplexity, args["id"].(string)), true
 
 	case "Query.users":
 		if e.complexity.Query.Users == nil {
@@ -406,7 +406,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Views(childComplexity, args["id"].(mypkg.UUID)), true
+		return e.complexity.Query.Views(childComplexity, args["id"].(string)), true
 
 	case "UploadResponse.name":
 		if e.complexity.UploadResponse.Name == nil {
@@ -679,12 +679,12 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 var sources = []*ast.Source{
 	{Name: "../schema/avis.graphqls", Input: `"all fields that represent an 'avis'"
 type Avis {
-    id: UUID!
+    id: String!
     created_at: Time!
     deleted_at: Time
     updated_at: Time!
-    user_id_target: UUID!
-    user_id_writer: UUID!
+    user_id_target: String!
+    user_id_writer: String!
     note: Int!
     comment: String!
 }
@@ -692,9 +692,9 @@ type Avis {
 "payload send when a user give an avis"
 input AvisInput {
     "correspond of the user who receive the avis"
-    user_id_target: UUID!
+    user_id_target: String! @binding(validation: "uuid")
     "correspond of the user who give the avis"
-    user_id_writer: UUID!
+    user_id_writer: String! @binding(validation: "uuid")
     "note of the avis"
     note: Int! @binding(validation: "min=0,max=5")
     "comment of the avis"
@@ -725,14 +725,14 @@ input UploadInput {
 
 input SigninInput {
   "email of the user"
-  email: Email!
+  email: String! @binding(validation: "email")
   "password of the user"
   password: String! @binding(validation: "min=6,max=255,with_number=true")
 }
 
 input SignupInput {
   "email of the user"
-  email: Email!
+  email: String! @binding(validation: "email")
   "password of the user"
   password: String! @binding(validation: "min=6,max=255,with_number=true")
   "confirm password of the user"
@@ -756,9 +756,9 @@ input SignupInput {
     "update a user"
     updateUser(input: UpdateUserProfileInput!): User @jwtAuth @hasRole(role: [ADMIN, USER])
     "delete a user"
-    deleteUser(id: UUID!): Boolean! @jwtAuth @hasRole(role: [ADMIN, USER])
+    deleteUser(id: String! @binding(validation: "uuid")): Boolean! @jwtAuth @hasRole(role: [ADMIN, USER])
     "update the user's role"
-    updateRole(role: [UserType!]!, id:UUID!): User! @hasRole(role: [ADMIN]) @jwtAuth
+    updateRole(role: [UserType!]!, id:String! @binding(validation: "uuid")): User! @hasRole(role: [ADMIN]) @jwtAuth
 
 
     #
@@ -773,7 +773,7 @@ input SignupInput {
     # ********** VIEWERS MUTATION *****************
     #
     "add a viewer based on the user's id and the profil id viewed"
-    addViewer(id: UUID!): Boolean! @jwtAuth @hasRole(role: [ADMIN, USER])
+    addViewer(user_id: String! @binding(validation: "uuid"), user_viewed: String! @binding(validation: "uuid")): Viewer! @jwtAuth @hasRole(role: [ADMIN, USER])
 
 
     #
@@ -784,14 +784,14 @@ input SignupInput {
     "update an avis"
     updateAvis(input: AvisInput!): Avis! @jwtAuth @hasRole(role: [ADMIN, USER])
     "delete an avis"
-    deleteAvis(id: UUID!): Boolean! @jwtAuth @hasRole(role: [ADMIN, USER])
+    deleteAvis(id: String! @binding(validation: "uuid")): Boolean! @jwtAuth @hasRole(role: [ADMIN, USER])
 }`, BuiltIn: false},
 	{Name: "../schema/query.graphqls", Input: `type Query {
     #
     # ********** USERS QUERY *****************
     #
     "returns one user by his id precising in the payload"
-    user(id:UUID!): User @jwtAuth @hasRole(role: [ADMIN, USER])
+    user(id:String! @binding(validation: "uuid")): User @jwtAuth @hasRole(role: [ADMIN, USER])
     "returns all users with a limit precising in the payload"
     users(limit: Int!, offset: Int!): [User] @hasRole(role: [ADMIN, USER]) @jwtAuth
 
@@ -801,13 +801,13 @@ input SignupInput {
     # ********** VIEWERS QUERY *****************
     #
     "returns all the views of a user based on his id"
-    views(id: UUID!): [Viewer] @hasRole(role: [ADMIN, USER]) @jwtAuth
+    views(id: String! @binding(validation: "uuid")): [Viewer] @hasRole(role: [ADMIN, USER]) @jwtAuth
 
     #
     # ********** AVIS QUERY *****************
     #
     "returns all the AVIS of a user based on his id"
-    avis(id: UUID!): [Avis] @hasRole(role: [ADMIN, USER]) @jwtAuth
+    avis(id: String! @binding(validation: "uuid")): [Avis] @hasRole(role: [ADMIN, USER]) @jwtAuth
 }`, BuiltIn: false},
 	{Name: "../schema/schema.graphqls", Input: `scalar Time
 scalar Upload
@@ -827,7 +827,7 @@ directive @goModel(model: String, models: [String!]) on OBJECT
 directive @goField(forceResolver: Boolean, name: String) on INPUT_FIELD_DEFINITION
     | FIELD_DEFINITION
 
-directive @binding(validation: String!) on INPUT_FIELD_DEFINITION | FIELD_DEFINITION
+directive @binding(validation: String!) on INPUT_FIELD_DEFINITION | FIELD_DEFINITION | ARGUMENT_DEFINITION
 
 schema {
     query: Query
@@ -873,11 +873,11 @@ enum GoalType {
 
 "All fields that represent a user"
 type User {
-  id: UUID!
+  id: String!
   created_at: Time!
   deleted_at: Time
   updated_at: Time!
-  email: Email!
+  email: String!
   firstname: String
   lastname: String
   role: [UserType!]!
@@ -895,9 +895,9 @@ type User {
 "payload send when you a user want to update his profile"
 input UpdateUserProfileInput {
   "id of the user (required)"
-  id: UUID!
+  id: String! @binding(validation: "uuid")
   "email of the user (required)"
-  email: Email!
+  email: String! @binding(validation: "email")
   "firstname of the user"
   firstname: String @binding(validation: "min=2,max=25,with_number=false")
   "lastname of the user"
@@ -918,14 +918,14 @@ input UpdateUserProfileInput {
 	{Name: "../schema/viewers.graphqls", Input: `
 "All fields that represent the table viewers"
 type Viewer {
-    id: UUID!
+    id: String! @binding(validation: "uuid")
     created_at: Time!
     deleted_at: Time
     updated_at: Time!
     "The name of the viewer"
-    user_id_viewer: UUID!
+    user_id_viewer: String! @binding(validation: "uuid")
     "The name of the profile he is viewing"
-    profile_id_viewed: UUID!
+    profile_id_viewed: String! @binding(validation: "uuid")
     "the date where the viewer was watching the profile"
     date_viewed: Time!
 }`, BuiltIn: false},
@@ -969,15 +969,58 @@ func (ec *executionContext) dir_hasRole_args(ctx context.Context, rawArgs map[st
 func (ec *executionContext) field_Mutation_addViewer_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 mypkg.UUID
-	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNUUID212ᚑstartupsᚑoneᚑmonthᚋgraphᚋmypkgᚐUUID(ctx, tmp)
+	var arg0 string
+	if tmp, ok := rawArgs["user_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_id"))
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNString2string(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			validation, err := ec.unmarshalNString2string(ctx, "uuid")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.Binding == nil {
+				return nil, errors.New("directive binding is not implemented")
+			}
+			return ec.directives.Binding(ctx, rawArgs, directive0, validation)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
-			return nil, err
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if data, ok := tmp.(string); ok {
+			arg0 = data
+		} else {
+			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
 		}
 	}
-	args["id"] = arg0
+	args["user_id"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["user_viewed"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_viewed"))
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNString2string(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			validation, err := ec.unmarshalNString2string(ctx, "uuid")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.Binding == nil {
+				return nil, errors.New("directive binding is not implemented")
+			}
+			return ec.directives.Binding(ctx, rawArgs, directive0, validation)
+		}
+
+		tmp, err = directive1(ctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if data, ok := tmp.(string); ok {
+			arg1 = data
+		} else {
+			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
+		}
+	}
+	args["user_viewed"] = arg1
 	return args, nil
 }
 
@@ -999,12 +1042,29 @@ func (ec *executionContext) field_Mutation_createAvis_args(ctx context.Context, 
 func (ec *executionContext) field_Mutation_deleteAvis_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 mypkg.UUID
+	var arg0 string
 	if tmp, ok := rawArgs["id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNUUID212ᚑstartupsᚑoneᚑmonthᚋgraphᚋmypkgᚐUUID(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNString2string(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			validation, err := ec.unmarshalNString2string(ctx, "uuid")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.Binding == nil {
+				return nil, errors.New("directive binding is not implemented")
+			}
+			return ec.directives.Binding(ctx, rawArgs, directive0, validation)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
-			return nil, err
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if data, ok := tmp.(string); ok {
+			arg0 = data
+		} else {
+			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
 		}
 	}
 	args["id"] = arg0
@@ -1014,12 +1074,29 @@ func (ec *executionContext) field_Mutation_deleteAvis_args(ctx context.Context, 
 func (ec *executionContext) field_Mutation_deleteUser_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 mypkg.UUID
+	var arg0 string
 	if tmp, ok := rawArgs["id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNUUID212ᚑstartupsᚑoneᚑmonthᚋgraphᚋmypkgᚐUUID(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNString2string(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			validation, err := ec.unmarshalNString2string(ctx, "uuid")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.Binding == nil {
+				return nil, errors.New("directive binding is not implemented")
+			}
+			return ec.directives.Binding(ctx, rawArgs, directive0, validation)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
-			return nil, err
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if data, ok := tmp.(string); ok {
+			arg0 = data
+		} else {
+			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
 		}
 	}
 	args["id"] = arg0
@@ -1113,12 +1190,29 @@ func (ec *executionContext) field_Mutation_updateRole_args(ctx context.Context, 
 		}
 	}
 	args["role"] = arg0
-	var arg1 mypkg.UUID
+	var arg1 string
 	if tmp, ok := rawArgs["id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg1, err = ec.unmarshalNUUID212ᚑstartupsᚑoneᚑmonthᚋgraphᚋmypkgᚐUUID(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNString2string(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			validation, err := ec.unmarshalNString2string(ctx, "uuid")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.Binding == nil {
+				return nil, errors.New("directive binding is not implemented")
+			}
+			return ec.directives.Binding(ctx, rawArgs, directive0, validation)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
-			return nil, err
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if data, ok := tmp.(string); ok {
+			arg1 = data
+		} else {
+			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
 		}
 	}
 	args["id"] = arg1
@@ -1158,12 +1252,29 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 func (ec *executionContext) field_Query_avis_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 mypkg.UUID
+	var arg0 string
 	if tmp, ok := rawArgs["id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNUUID212ᚑstartupsᚑoneᚑmonthᚋgraphᚋmypkgᚐUUID(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNString2string(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			validation, err := ec.unmarshalNString2string(ctx, "uuid")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.Binding == nil {
+				return nil, errors.New("directive binding is not implemented")
+			}
+			return ec.directives.Binding(ctx, rawArgs, directive0, validation)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
-			return nil, err
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if data, ok := tmp.(string); ok {
+			arg0 = data
+		} else {
+			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
 		}
 	}
 	args["id"] = arg0
@@ -1173,12 +1284,29 @@ func (ec *executionContext) field_Query_avis_args(ctx context.Context, rawArgs m
 func (ec *executionContext) field_Query_user_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 mypkg.UUID
+	var arg0 string
 	if tmp, ok := rawArgs["id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNUUID212ᚑstartupsᚑoneᚑmonthᚋgraphᚋmypkgᚐUUID(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNString2string(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			validation, err := ec.unmarshalNString2string(ctx, "uuid")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.Binding == nil {
+				return nil, errors.New("directive binding is not implemented")
+			}
+			return ec.directives.Binding(ctx, rawArgs, directive0, validation)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
-			return nil, err
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if data, ok := tmp.(string); ok {
+			arg0 = data
+		} else {
+			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
 		}
 	}
 	args["id"] = arg0
@@ -1212,12 +1340,29 @@ func (ec *executionContext) field_Query_users_args(ctx context.Context, rawArgs 
 func (ec *executionContext) field_Query_views_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 mypkg.UUID
+	var arg0 string
 	if tmp, ok := rawArgs["id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNUUID212ᚑstartupsᚑoneᚑmonthᚋgraphᚋmypkgᚐUUID(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNString2string(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			validation, err := ec.unmarshalNString2string(ctx, "uuid")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.Binding == nil {
+				return nil, errors.New("directive binding is not implemented")
+			}
+			return ec.directives.Binding(ctx, rawArgs, directive0, validation)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
-			return nil, err
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if data, ok := tmp.(string); ok {
+			arg0 = data
+		} else {
+			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
 		}
 	}
 	args["id"] = arg0
@@ -1288,9 +1433,9 @@ func (ec *executionContext) _Avis_id(ctx context.Context, field graphql.Collecte
 		}
 		return graphql.Null
 	}
-	res := resTmp.(mypkg.UUID)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNUUID212ᚑstartupsᚑoneᚑmonthᚋgraphᚋmypkgᚐUUID(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Avis_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1300,7 +1445,7 @@ func (ec *executionContext) fieldContext_Avis_id(ctx context.Context, field grap
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type UUID does not have child fields")
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -1461,9 +1606,9 @@ func (ec *executionContext) _Avis_user_id_target(ctx context.Context, field grap
 		}
 		return graphql.Null
 	}
-	res := resTmp.(mypkg.UUID)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNUUID212ᚑstartupsᚑoneᚑmonthᚋgraphᚋmypkgᚐUUID(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Avis_user_id_target(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1473,7 +1618,7 @@ func (ec *executionContext) fieldContext_Avis_user_id_target(ctx context.Context
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type UUID does not have child fields")
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -1505,9 +1650,9 @@ func (ec *executionContext) _Avis_user_id_writer(ctx context.Context, field grap
 		}
 		return graphql.Null
 	}
-	res := resTmp.(mypkg.UUID)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNUUID212ᚑstartupsᚑoneᚑmonthᚋgraphᚋmypkgᚐUUID(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Avis_user_id_writer(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1517,7 +1662,7 @@ func (ec *executionContext) fieldContext_Avis_user_id_writer(ctx context.Context
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type UUID does not have child fields")
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -2015,7 +2160,7 @@ func (ec *executionContext) _Mutation_deleteUser(ctx context.Context, field grap
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		directive0 := func(rctx context.Context) (interface{}, error) {
 			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().DeleteUser(rctx, fc.Args["id"].(mypkg.UUID))
+			return ec.resolvers.Mutation().DeleteUser(rctx, fc.Args["id"].(string))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
 			if ec.directives.JwtAuth == nil {
@@ -2100,7 +2245,7 @@ func (ec *executionContext) _Mutation_updateRole(ctx context.Context, field grap
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		directive0 := func(rctx context.Context) (interface{}, error) {
 			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().UpdateRole(rctx, fc.Args["role"].([]model.UserType), fc.Args["id"].(mypkg.UUID))
+			return ec.resolvers.Mutation().UpdateRole(rctx, fc.Args["role"].([]model.UserType), fc.Args["id"].(string))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
 			role, err := ec.unmarshalNUserType2ᚕ12ᚑstartupsᚑoneᚑmonthᚋgraphᚋmodelᚐUserTypeᚄ(ctx, []interface{}{"ADMIN"})
@@ -2316,7 +2461,7 @@ func (ec *executionContext) _Mutation_addViewer(ctx context.Context, field graph
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		directive0 := func(rctx context.Context) (interface{}, error) {
 			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().AddViewer(rctx, fc.Args["id"].(mypkg.UUID))
+			return ec.resolvers.Mutation().AddViewer(rctx, fc.Args["user_id"].(string), fc.Args["user_viewed"].(string))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
 			if ec.directives.JwtAuth == nil {
@@ -2342,10 +2487,10 @@ func (ec *executionContext) _Mutation_addViewer(ctx context.Context, field graph
 		if tmp == nil {
 			return nil, nil
 		}
-		if data, ok := tmp.(bool); ok {
+		if data, ok := tmp.(*model.Viewer); ok {
 			return data, nil
 		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be bool`, tmp)
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *12-startups-one-month/graph/model.Viewer`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2357,9 +2502,9 @@ func (ec *executionContext) _Mutation_addViewer(ctx context.Context, field graph
 		}
 		return graphql.Null
 	}
-	res := resTmp.(bool)
+	res := resTmp.(*model.Viewer)
 	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+	return ec.marshalNViewer2ᚖ12ᚑstartupsᚑoneᚑmonthᚋgraphᚋmodelᚐViewer(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_addViewer(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2369,7 +2514,23 @@ func (ec *executionContext) fieldContext_Mutation_addViewer(ctx context.Context,
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Viewer_id(ctx, field)
+			case "created_at":
+				return ec.fieldContext_Viewer_created_at(ctx, field)
+			case "deleted_at":
+				return ec.fieldContext_Viewer_deleted_at(ctx, field)
+			case "updated_at":
+				return ec.fieldContext_Viewer_updated_at(ctx, field)
+			case "user_id_viewer":
+				return ec.fieldContext_Viewer_user_id_viewer(ctx, field)
+			case "profile_id_viewed":
+				return ec.fieldContext_Viewer_profile_id_viewed(ctx, field)
+			case "date_viewed":
+				return ec.fieldContext_Viewer_date_viewed(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Viewer", field.Name)
 		},
 	}
 	defer func() {
@@ -2607,7 +2768,7 @@ func (ec *executionContext) _Mutation_deleteAvis(ctx context.Context, field grap
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		directive0 := func(rctx context.Context) (interface{}, error) {
 			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().DeleteAvis(rctx, fc.Args["id"].(mypkg.UUID))
+			return ec.resolvers.Mutation().DeleteAvis(rctx, fc.Args["id"].(string))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
 			if ec.directives.JwtAuth == nil {
@@ -2692,7 +2853,7 @@ func (ec *executionContext) _Query_user(ctx context.Context, field graphql.Colle
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		directive0 := func(rctx context.Context) (interface{}, error) {
 			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Query().User(rctx, fc.Args["id"].(mypkg.UUID))
+			return ec.resolvers.Query().User(rctx, fc.Args["id"].(string))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
 			if ec.directives.JwtAuth == nil {
@@ -2928,7 +3089,7 @@ func (ec *executionContext) _Query_views(ctx context.Context, field graphql.Coll
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		directive0 := func(rctx context.Context) (interface{}, error) {
 			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Query().Views(rctx, fc.Args["id"].(mypkg.UUID))
+			return ec.resolvers.Query().Views(rctx, fc.Args["id"].(string))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
 			role, err := ec.unmarshalNUserType2ᚕ12ᚑstartupsᚑoneᚑmonthᚋgraphᚋmodelᚐUserTypeᚄ(ctx, []interface{}{"ADMIN", "USER"})
@@ -3026,7 +3187,7 @@ func (ec *executionContext) _Query_avis(ctx context.Context, field graphql.Colle
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		directive0 := func(rctx context.Context) (interface{}, error) {
 			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Query().Avis(rctx, fc.Args["id"].(mypkg.UUID))
+			return ec.resolvers.Query().Avis(rctx, fc.Args["id"].(string))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
 			role, err := ec.unmarshalNUserType2ᚕ12ᚑstartupsᚑoneᚑmonthᚋgraphᚋmodelᚐUserTypeᚄ(ctx, []interface{}{"ADMIN", "USER"})
@@ -3442,9 +3603,9 @@ func (ec *executionContext) _User_id(ctx context.Context, field graphql.Collecte
 		}
 		return graphql.Null
 	}
-	res := resTmp.(mypkg.UUID)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNUUID212ᚑstartupsᚑoneᚑmonthᚋgraphᚋmypkgᚐUUID(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_User_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3454,7 +3615,7 @@ func (ec *executionContext) fieldContext_User_id(ctx context.Context, field grap
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type UUID does not have child fields")
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -3615,9 +3776,9 @@ func (ec *executionContext) _User_email(ctx context.Context, field graphql.Colle
 		}
 		return graphql.Null
 	}
-	res := resTmp.(mypkg.Email)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNEmail212ᚑstartupsᚑoneᚑmonthᚋgraphᚋmypkgᚐEmail(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_User_email(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3627,7 +3788,7 @@ func (ec *executionContext) fieldContext_User_email(ctx context.Context, field g
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Email does not have child fields")
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -4147,8 +4308,32 @@ func (ec *executionContext) _Viewer_id(ctx context.Context, field graphql.Collec
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ID, nil
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return obj.ID, nil
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			validation, err := ec.unmarshalNString2string(ctx, "uuid")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.Binding == nil {
+				return nil, errors.New("directive binding is not implemented")
+			}
+			return ec.directives.Binding(ctx, obj, directive0, validation)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(string); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4160,9 +4345,9 @@ func (ec *executionContext) _Viewer_id(ctx context.Context, field graphql.Collec
 		}
 		return graphql.Null
 	}
-	res := resTmp.(mypkg.UUID)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNUUID212ᚑstartupsᚑoneᚑmonthᚋgraphᚋmypkgᚐUUID(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Viewer_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -4172,7 +4357,7 @@ func (ec *executionContext) fieldContext_Viewer_id(ctx context.Context, field gr
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type UUID does not have child fields")
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -4320,8 +4505,32 @@ func (ec *executionContext) _Viewer_user_id_viewer(ctx context.Context, field gr
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.UserIDViewer, nil
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return obj.UserIDViewer, nil
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			validation, err := ec.unmarshalNString2string(ctx, "uuid")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.Binding == nil {
+				return nil, errors.New("directive binding is not implemented")
+			}
+			return ec.directives.Binding(ctx, obj, directive0, validation)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(string); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4333,9 +4542,9 @@ func (ec *executionContext) _Viewer_user_id_viewer(ctx context.Context, field gr
 		}
 		return graphql.Null
 	}
-	res := resTmp.(mypkg.UUID)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNUUID212ᚑstartupsᚑoneᚑmonthᚋgraphᚋmypkgᚐUUID(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Viewer_user_id_viewer(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -4345,7 +4554,7 @@ func (ec *executionContext) fieldContext_Viewer_user_id_viewer(ctx context.Conte
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type UUID does not have child fields")
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -4364,8 +4573,32 @@ func (ec *executionContext) _Viewer_profile_id_viewed(ctx context.Context, field
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ProfileIDViewed, nil
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return obj.ProfileIDViewed, nil
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			validation, err := ec.unmarshalNString2string(ctx, "uuid")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.Binding == nil {
+				return nil, errors.New("directive binding is not implemented")
+			}
+			return ec.directives.Binding(ctx, obj, directive0, validation)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(string); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4377,9 +4610,9 @@ func (ec *executionContext) _Viewer_profile_id_viewed(ctx context.Context, field
 		}
 		return graphql.Null
 	}
-	res := resTmp.(mypkg.UUID)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNUUID212ᚑstartupsᚑoneᚑmonthᚋgraphᚋmypkgᚐUUID(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Viewer_profile_id_viewed(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -4389,7 +4622,7 @@ func (ec *executionContext) fieldContext_Viewer_profile_id_viewed(ctx context.Co
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type UUID does not have child fields")
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -6230,17 +6463,53 @@ func (ec *executionContext) unmarshalInputAvisInput(ctx context.Context, obj int
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_id_target"))
-			it.UserIDTarget, err = ec.unmarshalNUUID212ᚑstartupsᚑoneᚑmonthᚋgraphᚋmypkgᚐUUID(ctx, v)
+			directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNString2string(ctx, v) }
+			directive1 := func(ctx context.Context) (interface{}, error) {
+				validation, err := ec.unmarshalNString2string(ctx, "uuid")
+				if err != nil {
+					return nil, err
+				}
+				if ec.directives.Binding == nil {
+					return nil, errors.New("directive binding is not implemented")
+				}
+				return ec.directives.Binding(ctx, obj, directive0, validation)
+			}
+
+			tmp, err := directive1(ctx)
 			if err != nil {
-				return it, err
+				return it, graphql.ErrorOnPath(ctx, err)
+			}
+			if data, ok := tmp.(string); ok {
+				it.UserIDTarget = data
+			} else {
+				err := fmt.Errorf(`unexpected type %T from directive, should be string`, tmp)
+				return it, graphql.ErrorOnPath(ctx, err)
 			}
 		case "user_id_writer":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_id_writer"))
-			it.UserIDWriter, err = ec.unmarshalNUUID212ᚑstartupsᚑoneᚑmonthᚋgraphᚋmypkgᚐUUID(ctx, v)
+			directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNString2string(ctx, v) }
+			directive1 := func(ctx context.Context) (interface{}, error) {
+				validation, err := ec.unmarshalNString2string(ctx, "uuid")
+				if err != nil {
+					return nil, err
+				}
+				if ec.directives.Binding == nil {
+					return nil, errors.New("directive binding is not implemented")
+				}
+				return ec.directives.Binding(ctx, obj, directive0, validation)
+			}
+
+			tmp, err := directive1(ctx)
 			if err != nil {
-				return it, err
+				return it, graphql.ErrorOnPath(ctx, err)
+			}
+			if data, ok := tmp.(string); ok {
+				it.UserIDWriter = data
+			} else {
+				err := fmt.Errorf(`unexpected type %T from directive, should be string`, tmp)
+				return it, graphql.ErrorOnPath(ctx, err)
 			}
 		case "note":
 			var err error
@@ -6300,9 +6569,27 @@ func (ec *executionContext) unmarshalInputSigninInput(ctx context.Context, obj i
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("email"))
-			it.Email, err = ec.unmarshalNEmail212ᚑstartupsᚑoneᚑmonthᚋgraphᚋmypkgᚐEmail(ctx, v)
+			directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNString2string(ctx, v) }
+			directive1 := func(ctx context.Context) (interface{}, error) {
+				validation, err := ec.unmarshalNString2string(ctx, "email")
+				if err != nil {
+					return nil, err
+				}
+				if ec.directives.Binding == nil {
+					return nil, errors.New("directive binding is not implemented")
+				}
+				return ec.directives.Binding(ctx, obj, directive0, validation)
+			}
+
+			tmp, err := directive1(ctx)
 			if err != nil {
-				return it, err
+				return it, graphql.ErrorOnPath(ctx, err)
+			}
+			if data, ok := tmp.(string); ok {
+				it.Email = data
+			} else {
+				err := fmt.Errorf(`unexpected type %T from directive, should be string`, tmp)
+				return it, graphql.ErrorOnPath(ctx, err)
 			}
 		case "password":
 			var err error
@@ -6354,9 +6641,27 @@ func (ec *executionContext) unmarshalInputSignupInput(ctx context.Context, obj i
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("email"))
-			it.Email, err = ec.unmarshalNEmail212ᚑstartupsᚑoneᚑmonthᚋgraphᚋmypkgᚐEmail(ctx, v)
+			directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNString2string(ctx, v) }
+			directive1 := func(ctx context.Context) (interface{}, error) {
+				validation, err := ec.unmarshalNString2string(ctx, "email")
+				if err != nil {
+					return nil, err
+				}
+				if ec.directives.Binding == nil {
+					return nil, errors.New("directive binding is not implemented")
+				}
+				return ec.directives.Binding(ctx, obj, directive0, validation)
+			}
+
+			tmp, err := directive1(ctx)
 			if err != nil {
-				return it, err
+				return it, graphql.ErrorOnPath(ctx, err)
+			}
+			if data, ok := tmp.(string); ok {
+				it.Email = data
+			} else {
+				err := fmt.Errorf(`unexpected type %T from directive, should be string`, tmp)
+				return it, graphql.ErrorOnPath(ctx, err)
 			}
 		case "password":
 			var err error
@@ -6416,17 +6721,53 @@ func (ec *executionContext) unmarshalInputUpdateUserProfileInput(ctx context.Con
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-			it.ID, err = ec.unmarshalNUUID212ᚑstartupsᚑoneᚑmonthᚋgraphᚋmypkgᚐUUID(ctx, v)
+			directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNString2string(ctx, v) }
+			directive1 := func(ctx context.Context) (interface{}, error) {
+				validation, err := ec.unmarshalNString2string(ctx, "uuid")
+				if err != nil {
+					return nil, err
+				}
+				if ec.directives.Binding == nil {
+					return nil, errors.New("directive binding is not implemented")
+				}
+				return ec.directives.Binding(ctx, obj, directive0, validation)
+			}
+
+			tmp, err := directive1(ctx)
 			if err != nil {
-				return it, err
+				return it, graphql.ErrorOnPath(ctx, err)
+			}
+			if data, ok := tmp.(string); ok {
+				it.ID = data
+			} else {
+				err := fmt.Errorf(`unexpected type %T from directive, should be string`, tmp)
+				return it, graphql.ErrorOnPath(ctx, err)
 			}
 		case "email":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("email"))
-			it.Email, err = ec.unmarshalNEmail212ᚑstartupsᚑoneᚑmonthᚋgraphᚋmypkgᚐEmail(ctx, v)
+			directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNString2string(ctx, v) }
+			directive1 := func(ctx context.Context) (interface{}, error) {
+				validation, err := ec.unmarshalNString2string(ctx, "email")
+				if err != nil {
+					return nil, err
+				}
+				if ec.directives.Binding == nil {
+					return nil, errors.New("directive binding is not implemented")
+				}
+				return ec.directives.Binding(ctx, obj, directive0, validation)
+			}
+
+			tmp, err := directive1(ctx)
 			if err != nil {
-				return it, err
+				return it, graphql.ErrorOnPath(ctx, err)
+			}
+			if data, ok := tmp.(string); ok {
+				it.Email = data
+			} else {
+				err := fmt.Errorf(`unexpected type %T from directive, should be string`, tmp)
+				return it, graphql.ErrorOnPath(ctx, err)
 			}
 		case "firstname":
 			var err error
@@ -7545,16 +7886,6 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
-func (ec *executionContext) unmarshalNEmail212ᚑstartupsᚑoneᚑmonthᚋgraphᚋmypkgᚐEmail(ctx context.Context, v interface{}) (mypkg.Email, error) {
-	var res mypkg.Email
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNEmail212ᚑstartupsᚑoneᚑmonthᚋgraphᚋmypkgᚐEmail(ctx context.Context, sel ast.SelectionSet, v mypkg.Email) graphql.Marshaler {
-	return v
-}
-
 func (ec *executionContext) unmarshalNGoalType212ᚑstartupsᚑoneᚑmonthᚋgraphᚋmodelᚐGoalType(ctx context.Context, v interface{}) (model.GoalType, error) {
 	var res model.GoalType
 	err := res.UnmarshalGQL(v)
@@ -7642,16 +7973,6 @@ func (ec *executionContext) marshalNTime2timeᚐTime(ctx context.Context, sel as
 		}
 	}
 	return res
-}
-
-func (ec *executionContext) unmarshalNUUID212ᚑstartupsᚑoneᚑmonthᚋgraphᚋmypkgᚐUUID(ctx context.Context, v interface{}) (mypkg.UUID, error) {
-	var res mypkg.UUID
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNUUID212ᚑstartupsᚑoneᚑmonthᚋgraphᚋmypkgᚐUUID(ctx context.Context, sel ast.SelectionSet, v mypkg.UUID) graphql.Marshaler {
-	return v
 }
 
 func (ec *executionContext) unmarshalNUpdateUserProfileInput212ᚑstartupsᚑoneᚑmonthᚋgraphᚋmodelᚐUpdateUserProfileInput(ctx context.Context, v interface{}) (model.UpdateUserProfileInput, error) {
@@ -7776,6 +8097,20 @@ func (ec *executionContext) marshalNUserType2ᚕ12ᚑstartupsᚑoneᚑmonthᚋgr
 	}
 
 	return ret
+}
+
+func (ec *executionContext) marshalNViewer212ᚑstartupsᚑoneᚑmonthᚋgraphᚋmodelᚐViewer(ctx context.Context, sel ast.SelectionSet, v model.Viewer) graphql.Marshaler {
+	return ec._Viewer(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNViewer2ᚖ12ᚑstartupsᚑoneᚑmonthᚋgraphᚋmodelᚐViewer(ctx context.Context, sel ast.SelectionSet, v *model.Viewer) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._Viewer(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalN__Directive2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐDirective(ctx context.Context, sel ast.SelectionSet, v introspection.Directive) graphql.Marshaler {

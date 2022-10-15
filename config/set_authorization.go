@@ -148,6 +148,34 @@ func (server *Server) HasRole(ctx context.Context, obj interface{}, next graphql
 	return next(ctx)
 }
 
+func checkBindingString(tab []string, value string) error {
+	switch tab[0] {
+	case "min":
+		if len(value) < utils.StrToInt(tab[1]) {
+			return utils.Gqlerror("must be at least " + tab[1] + " characters")
+		}
+	case "max":
+		if len(value) > utils.StrToInt(tab[1]) {
+			return utils.Gqlerror("must be at most " + tab[1] + " characters")
+		}
+	case "with_number":
+		if tab[1] == "true" && !strings.ContainsAny(value, "0123456789") {
+			return utils.Gqlerror("must contain at least one number")
+		} else if tab[1] == "false" && strings.ContainsAny(value, "0123456789") {
+			return utils.Gqlerror("must not contain number")
+		}
+	case "email":
+		if !utils.IsEmail(value) {
+			return utils.Gqlerror("must be a valid email address")
+		}
+	case "uuid":
+		if !utils.IsUUID(value) {
+			return utils.Gqlerror("must be a valid UUID")
+		}
+	}
+	return nil
+}
+
 func (server *Server) Binding(ctx context.Context, obj interface{}, next graphql.Resolver, validation string) (interface{}, error) {
 	res, _ := next(ctx)
 	if res == nil {
@@ -165,21 +193,8 @@ func (server *Server) Binding(ctx context.Context, obj interface{}, next graphql
 	if valueType == "string" {
 		for _, v := range validations {
 			tmpKey := strings.Split(v, "=")
-			switch tmpKey[0] {
-			case "min":
-				if len(res.(string)) < utils.StrToInt(tmpKey[1]) {
-					return nil, utils.Gqlerror("must be at least " + tmpKey[1] + " characters")
-				}
-			case "max":
-				if len(res.(string)) > utils.StrToInt(tmpKey[1]) {
-					return nil, utils.Gqlerror("must be at most " + tmpKey[1] + " characters")
-				}
-			case "with_number":
-				if tmpKey[1] == "true" && !strings.ContainsAny(res.(string), "0123456789") {
-					return nil, utils.Gqlerror("must contain at least one number")
-				} else if tmpKey[1] == "false" && strings.ContainsAny(res.(string), "0123456789") {
-					return nil, utils.Gqlerror("must not contain number")
-				}
+			if ok := checkBindingString(tmpKey, res.(string)); ok != nil {
+				return nil, ok
 			}
 		}
 	} else if valueType == "*string" {
@@ -187,21 +202,8 @@ func (server *Server) Binding(ctx context.Context, obj interface{}, next graphql
 			tmp := *res.(*string)
 			for _, v := range validations {
 				tmpKey := strings.Split(v, "=")
-				switch tmpKey[0] {
-				case "min":
-					if len(tmp) < utils.StrToInt(tmpKey[1]) {
-						return nil, utils.Gqlerror("must be at least " + tmpKey[1] + " characters")
-					}
-				case "max":
-					if len(tmp) > utils.StrToInt(tmpKey[1]) {
-						return nil, utils.Gqlerror("must be at most " + tmpKey[1] + " characters")
-					}
-				case "with_number":
-					if tmpKey[1] == "true" && !strings.ContainsAny(tmp, "0123456789") {
-						return nil, utils.Gqlerror("must contain at least one number")
-					} else if tmpKey[1] == "false" && strings.ContainsAny(tmp, "0123456789") {
-						return nil, utils.Gqlerror("must not contain number")
-					}
+				if ok := checkBindingString(tmpKey, tmp); ok != nil {
+					return nil, ok
 				}
 			}
 		}

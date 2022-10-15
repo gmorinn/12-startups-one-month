@@ -31,12 +31,12 @@ func (r *mutationResolver) UpdateUser(ctx context.Context, input model.UpdateUse
 }
 
 // DeleteUser is the resolver for the deleteUser field.
-func (r *mutationResolver) DeleteUser(ctx context.Context, id mypkg.UUID) (bool, error) {
+func (r *mutationResolver) DeleteUser(ctx context.Context, id string) (bool, error) {
 	return r.UserService.DeleteUser(ctx, id)
 }
 
 // UpdateRole is the resolver for the updateRole field.
-func (r *mutationResolver) UpdateRole(ctx context.Context, role []model.UserType, id mypkg.UUID) (*model.User, error) {
+func (r *mutationResolver) UpdateRole(ctx context.Context, role []model.UserType, id string) (*model.User, error) {
 	return r.UserService.UpdateRole(ctx, role, id)
 }
 
@@ -46,8 +46,8 @@ func (r *mutationResolver) SingleUpload(ctx context.Context, file model.UploadIn
 }
 
 // AddViewer is the resolver for the addViewer field.
-func (r *mutationResolver) AddViewer(ctx context.Context, id mypkg.UUID) (bool, error) {
-	panic(fmt.Errorf("not implemented: AddViewer - addViewer"))
+func (r *mutationResolver) AddViewer(ctx context.Context, userID string, userViewed string) (*model.Viewer, error) {
+	return r.ViewerService.AddViewer(ctx, userID, userViewed)
 }
 
 // CreateAvis is the resolver for the createAvis field.
@@ -61,7 +61,7 @@ func (r *mutationResolver) UpdateAvis(ctx context.Context, input model.AvisInput
 }
 
 // DeleteAvis is the resolver for the deleteAvis field.
-func (r *mutationResolver) DeleteAvis(ctx context.Context, id mypkg.UUID) (bool, error) {
+func (r *mutationResolver) DeleteAvis(ctx context.Context, id string) (bool, error) {
 	panic(fmt.Errorf("not implemented: DeleteAvis - deleteAvis"))
 }
 

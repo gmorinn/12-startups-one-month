@@ -3,7 +3,6 @@ package service
 import (
 	config "12-startups-one-month/config"
 	"12-startups-one-month/graph/model"
-	"12-startups-one-month/graph/mypkg"
 	db "12-startups-one-month/internal"
 	"12-startups-one-month/utils"
 	"context"
@@ -15,11 +14,11 @@ import (
 )
 
 type IUserService interface {
-	GetUser(ctx context.Context, id mypkg.UUID) (*model.User, error)
+	GetUser(ctx context.Context, id string) (*model.User, error)
 	GetUsers(ctx context.Context, limit int, offset int) ([]*model.User, error)
 	UpdateUser(ctx context.Context, input *model.UpdateUserProfileInput) (*model.User, error)
-	DeleteUser(ctx context.Context, id mypkg.UUID) (bool, error)
-	UpdateRole(ctx context.Context, role []model.UserType, id mypkg.UUID) (*model.User, error)
+	DeleteUser(ctx context.Context, id string) (bool, error)
+	UpdateRole(ctx context.Context, role []model.UserType, id string) (*model.User, error)
 }
 
 type UserService struct {
@@ -39,11 +38,11 @@ func SqlUserToGraphUser(sqlUser *db.User) *model.User {
 	sexe := model.SexeType(strings.ToUpper(string(sqlUser.Sexe)))
 	formule := model.FormuleType(sqlUser.Formule)
 	return &model.User{
-		ID:        mypkg.UUID(sqlUser.ID.String()),
+		ID:        sqlUser.ID.String(),
 		CreatedAt: sqlUser.CreatedAt,
 		UpdatedAt: sqlUser.UpdatedAt,
 		DeletedAt: &sqlUser.DeletedAt.Time,
-		Email:     mypkg.Email(sqlUser.Email),
+		Email:     sqlUser.Email,
 		Firstname: utils.NullSToPointeurS(sqlUser.Firstname),
 		Lastname:  utils.NullSToPointeurS(sqlUser.Lastname),
 		Role:      utils.ConvertRoleToUserType(sqlUser.Role),
@@ -59,11 +58,11 @@ func SqlUserToGraphUser(sqlUser *db.User) *model.User {
 	}
 }
 
-func (s *UserService) GetUser(ctx context.Context, id mypkg.UUID) (*model.User, error) {
+func (s *UserService) GetUser(ctx context.Context, id string) (*model.User, error) {
 	var res *model.User = nil
 
 	err := s.server.Store.ExecTx(ctx, func(q *db.Queries) error {
-		sqlUser, err := q.GetUserByID(ctx, uuid.MustParse(string(id)))
+		sqlUser, err := q.GetUserByID(ctx, uuid.MustParse(id))
 		if err != nil {
 			return err
 		}
@@ -114,7 +113,7 @@ func (s *UserService) UpdateUser(ctx context.Context, input *model.UpdateUserPro
 
 	// get user from context
 	user := s.server.GetUserContext(ctx)
-	if user.ID != uuid.MustParse(string(input.ID)) {
+	if user.ID != uuid.MustParse(input.ID) {
 		return nil, utils.ErrorResponse("UPDATE_USER", errors.New("user is not allowed to update this user"))
 	}
 
@@ -133,8 +132,8 @@ func (s *UserService) UpdateUser(ctx context.Context, input *model.UpdateUserPro
 		}
 
 		if err := q.UpdateUser(ctx, db.UpdateUserParams{
-			ID:        uuid.MustParse(string(input.ID)),
-			Email:     string(input.Email),
+			ID:        uuid.MustParse(input.ID),
+			Email:     input.Email,
 			Firstname: utils.PointeurS(input.Firstname),
 			Lastname:  utils.PointeurS(input.Lastname),
 			Age:       age,
@@ -147,7 +146,7 @@ func (s *UserService) UpdateUser(ctx context.Context, input *model.UpdateUserPro
 			return err
 		}
 
-		sqlUser, err := q.GetUserByID(ctx, uuid.MustParse(string(input.ID)))
+		sqlUser, err := q.GetUserByID(ctx, uuid.MustParse(input.ID))
 		if err != nil {
 			return err
 		}
@@ -161,19 +160,19 @@ func (s *UserService) UpdateUser(ctx context.Context, input *model.UpdateUserPro
 	return res, err
 }
 
-func (s *UserService) DeleteUser(ctx context.Context, id mypkg.UUID) (bool, error) {
+func (s *UserService) DeleteUser(ctx context.Context, id string) (bool, error) {
 	var res bool = false
 
 	err := s.server.Store.ExecTx(ctx, func(q *db.Queries) error {
 		// check if user exists
-		isUser, err := q.CheckUserByID(ctx, uuid.MustParse(string(id)))
+		isUser, err := q.CheckUserByID(ctx, uuid.MustParse(id))
 		if err != nil {
 			return err
 		}
 		if !isUser {
 			return utils.ErrorResponse("USER_NOT_FOUND", errors.New("user not found"))
 		}
-		if err := q.DeleteUserByID(ctx, uuid.MustParse(string(id))); err != nil {
+		if err := q.DeleteUserByID(ctx, uuid.MustParse(id)); err != nil {
 			return err
 		}
 		res = true
@@ -186,7 +185,7 @@ func (s *UserService) DeleteUser(ctx context.Context, id mypkg.UUID) (bool, erro
 	return res, err
 }
 
-func (s *UserService) UpdateRole(ctx context.Context, role []model.UserType, id mypkg.UUID) (*model.User, error) {
+func (s *UserService) UpdateRole(ctx context.Context, role []model.UserType, id string) (*model.User, error) {
 	var res *model.User = nil
 
 	err := s.server.Store.ExecTx(ctx, func(q *db.Queries) error {
@@ -195,13 +194,13 @@ func (s *UserService) UpdateRole(ctx context.Context, role []model.UserType, id 
 			newRoles = append(newRoles, db.Role(strings.ToLower(string(v))))
 		}
 		if err := q.UpdateRole(ctx, db.UpdateRoleParams{
-			ID:   uuid.MustParse(string(id)),
+			ID:   uuid.MustParse(id),
 			Role: newRoles,
 		}); err != nil {
 			return err
 		}
 
-		sqlUser, err := q.GetUserByID(ctx, uuid.MustParse(string(id)))
+		sqlUser, err := q.GetUserByID(ctx, uuid.MustParse(id))
 		if err != nil {
 			return err
 		}

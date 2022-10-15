@@ -2,6 +2,7 @@ package utils
 
 import (
 	"database/sql"
+	"regexp"
 	"time"
 
 	"github.com/google/uuid"
@@ -87,4 +88,23 @@ func NullI64ToPointeurI64(s sql.NullInt64) *int64 {
 		return &s.Int64
 	}
 	return nil
+}
+
+// check email format
+func IsEmail(email string) bool {
+	emailRegex := regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`)
+	if emailRegex.MatchString(email) {
+		return true
+	} else {
+		return false
+	}
+}
+
+// check uuid format
+func IsUUID(id string) bool {
+	_, err := uuid.Parse(id)
+	if err != nil {
+		return false
+	}
+	return true
 }

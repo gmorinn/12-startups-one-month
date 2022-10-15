@@ -26,9 +26,10 @@ func graphqlHandler(server *config.Server) gin.HandlerFunc {
 
 	// init service
 	c := graph.Config{Resolvers: &graph.Resolver{
-		AuthService: service.NewAuthService(server),
-		FileService: service.NewFileService(server),
-		UserService: service.NewUserService(server),
+		AuthService:   service.NewAuthService(server),
+		FileService:   service.NewFileService(server),
+		UserService:   service.NewUserService(server),
+		ViewerService: service.NewViewerService(server),
 	}}
 
 	// custom directives

@@ -19,7 +19,7 @@ type Querier interface {
 	CreateAvis(ctx context.Context, arg CreateAvisParams) error
 	CreateFile(ctx context.Context, arg CreateFileParams) (CreateFileRow, error)
 	CreateRefreshToken(ctx context.Context, arg CreateRefreshTokenParams) error
-	CreateView(ctx context.Context, arg CreateViewParams) error
+	CreateView(ctx context.Context, arg CreateViewParams) (Viewer, error)
 	DeleteAvisByID(ctx context.Context, id uuid.UUID) error
 	DeleteFile(ctx context.Context, url sql.NullString) error
 	DeleteOldRefreshToken(ctx context.Context) error
@@ -35,6 +35,7 @@ type Querier interface {
 	GetRefreshToken(ctx context.Context, token string) (GetRefreshTokenRow, error)
 	GetUserByID(ctx context.Context, id uuid.UUID) (User, error)
 	GetViewByID(ctx context.Context, id uuid.UUID) (Viewer, error)
+	GetViewsByUserID(ctx context.Context, profilIDViewed uuid.UUID) ([]Viewer, error)
 	ListRefreshTokenByUserID(ctx context.Context, arg ListRefreshTokenByUserIDParams) ([]RefreshToken, error)
 	LoginUser(ctx context.Context, arg LoginUserParams) (LoginUserRow, error)
 	Signup(ctx context.Context, arg SignupParams) (User, error)

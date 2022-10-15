@@ -20,9 +20,10 @@ SET
 WHERE 
     id = $1;
 
--- name: CreateView :exec
+-- name: CreateView :one
 INSERT INTO viewers (user_id_viewer, profil_id_viewed)
-VALUES ($1, $2);
+VALUES ($1, $2)
+RETURNING *;
 
 -- name: CheckViewByID :one
 SELECT EXISTS (
@@ -31,3 +32,10 @@ SELECT EXISTS (
     WHERE id = $1
     AND deleted_at IS NULL
 );
+
+-- name: GetViewsByUserID :many
+SELECT * FROM viewers
+WHERE profil_id_viewed = $1
+AND deleted_at IS NULL
+AND date_viewed > NOW() - INTERVAL '14 days'
+ORDER BY date_viewed DESC;

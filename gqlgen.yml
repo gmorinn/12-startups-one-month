@@ -52,11 +52,5 @@ models:
       - github.com/99designs/gqlgen/graphql.Int
       - github.com/99designs/gqlgen/graphql.Int64
       - github.com/99designs/gqlgen/graphql.Int32
-  Email:
-    model: 12-startups-one-month/graph/mypkg.Email
-  UUID:
-    model: 12-startups-one-month/graph/mypkg.UUID
-  URL:
-    model: 12-startups-one-month/graph/mypkg.URL
   JWT:
     model: 12-startups-one-month/graph/mypkg.JWT
