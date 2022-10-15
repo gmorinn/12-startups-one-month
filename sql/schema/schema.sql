@@ -54,7 +54,7 @@ CREATE TABLE "viewers" (
   "created_at" timestamp NOT NULL DEFAULT (now()),
   "updated_at" timestamp NOT NULL DEFAULT (now()),
   "deleted_at" timestamp CONSTRAINT deletedchk CHECK (deleted_at > created_at),
-  "user_id_viewer" uuid NOT NULL,
+  "user_id_viewer" uuid NOT NULL CONSTRAINT viewchk CHECK (user_id_viewer != profil_id_viewed),
   "profil_id_viewed" uuid NOT NULL,
   "date_viewed" timestamp NOT NULL DEFAULT (now())
 );

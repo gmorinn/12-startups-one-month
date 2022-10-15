@@ -84,16 +84,15 @@ func (s *AuthService) Signup(ctx context.Context, input *model.SignupInput) (*mo
 		}
 		return nil
 	})
-
+	if err != nil {
+		return nil, utils.ErrorResponse("TX_GET_USERS", err)
+	}
 	t, r, expt, err := s.server.GenerateJwtToken(user.ID, utils.ConvertRoleToString(user.Role))
 	if err != nil {
 		return nil, utils.ErrorResponse("ERROR_TOKEN", err)
 	}
 	if err := s.server.StoreRefresh(ctx, r, expt, user.ID); err != nil {
 		return nil, utils.ErrorResponse("ERROR_REFRESH_TOKEN", err)
-	}
-	if err != nil {
-		return nil, utils.ErrorResponse("TX_GET_USERS", err)
 	}
 	return &model.JWTResponse{
 		AccessToken:  mypkg.JWT(t),

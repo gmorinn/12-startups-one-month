@@ -65,7 +65,7 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		AddViewer    func(childComplexity int, userID string, userViewed string) int
+		AddViewer    func(childComplexity int, userViewed string) int
 		CreateAvis   func(childComplexity int, input model.AvisInput) int
 		DeleteAvis   func(childComplexity int, id string) int
 		DeleteUser   func(childComplexity int, id string) int
@@ -131,7 +131,7 @@ type MutationResolver interface {
 	DeleteUser(ctx context.Context, id string) (bool, error)
 	UpdateRole(ctx context.Context, role []model.UserType, id string) (*model.User, error)
 	SingleUpload(ctx context.Context, file model.UploadInput) (*model.UploadResponse, error)
-	AddViewer(ctx context.Context, userID string, userViewed string) (*model.Viewer, error)
+	AddViewer(ctx context.Context, userViewed string) (*model.Viewer, error)
 	CreateAvis(ctx context.Context, input model.AvisInput) (*model.Avis, error)
 	UpdateAvis(ctx context.Context, input model.AvisInput) (*model.Avis, error)
 	DeleteAvis(ctx context.Context, id string) (bool, error)
@@ -238,7 +238,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.AddViewer(childComplexity, args["user_id"].(string), args["user_viewed"].(string)), true
+		return e.complexity.Mutation.AddViewer(childComplexity, args["user_viewed"].(string)), true
 
 	case "Mutation.createAvis":
 		if e.complexity.Mutation.CreateAvis == nil {
@@ -773,7 +773,7 @@ input SignupInput {
     # ********** VIEWERS MUTATION *****************
     #
     "add a viewer based on the user's id and the profil id viewed"
-    addViewer(user_id: String! @binding(validation: "uuid"), user_viewed: String! @binding(validation: "uuid")): Viewer! @jwtAuth @hasRole(role: [ADMIN, USER])
+    addViewer(user_viewed: String! @binding(validation: "uuid")): Viewer! @jwtAuth @hasRole(role: [ADMIN, USER])
 
 
     #
@@ -970,8 +970,8 @@ func (ec *executionContext) field_Mutation_addViewer_args(ctx context.Context, r
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["user_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_id"))
+	if tmp, ok := rawArgs["user_viewed"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_viewed"))
 		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNString2string(ctx, tmp) }
 		directive1 := func(ctx context.Context) (interface{}, error) {
 			validation, err := ec.unmarshalNString2string(ctx, "uuid")
@@ -994,33 +994,7 @@ func (ec *executionContext) field_Mutation_addViewer_args(ctx context.Context, r
 			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
 		}
 	}
-	args["user_id"] = arg0
-	var arg1 string
-	if tmp, ok := rawArgs["user_viewed"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_viewed"))
-		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNString2string(ctx, tmp) }
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			validation, err := ec.unmarshalNString2string(ctx, "uuid")
-			if err != nil {
-				return nil, err
-			}
-			if ec.directives.Binding == nil {
-				return nil, errors.New("directive binding is not implemented")
-			}
-			return ec.directives.Binding(ctx, rawArgs, directive0, validation)
-		}
-
-		tmp, err = directive1(ctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if data, ok := tmp.(string); ok {
-			arg1 = data
-		} else {
-			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
-		}
-	}
-	args["user_viewed"] = arg1
+	args["user_viewed"] = arg0
 	return args, nil
 }
 
@@ -2461,7 +2435,7 @@ func (ec *executionContext) _Mutation_addViewer(ctx context.Context, field graph
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		directive0 := func(rctx context.Context) (interface{}, error) {
 			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().AddViewer(rctx, fc.Args["user_id"].(string), fc.Args["user_viewed"].(string))
+			return ec.resolvers.Mutation().AddViewer(rctx, fc.Args["user_viewed"].(string))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
 			if ec.directives.JwtAuth == nil {

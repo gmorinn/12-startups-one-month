@@ -14,6 +14,3 @@ Create sql commands
 - Make service folder and resolver.go
 
 
-<!-- blowfish -->
-<!-- date -->
-<!-- view with context -->

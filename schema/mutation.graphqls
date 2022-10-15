@@ -33,7 +33,7 @@ type Mutation {
     # ********** VIEWERS MUTATION *****************
     #
     "add a viewer based on the user's id and the profil id viewed"
-    addViewer(user_id: String! @binding(validation: "uuid"), user_viewed: String! @binding(validation: "uuid")): Viewer! @jwtAuth @hasRole(role: [ADMIN, USER])
+    addViewer(user_viewed: String! @binding(validation: "uuid")): Viewer! @jwtAuth @hasRole(role: [ADMIN, USER])
 
 
     #

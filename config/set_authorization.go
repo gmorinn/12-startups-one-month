@@ -176,6 +176,21 @@ func checkBindingString(tab []string, value string) error {
 	return nil
 }
 
+func checkBindingInt(tab []string, value int) error {
+	switch tab[0] {
+	case "min":
+		if value < utils.StrToInt(tab[1]) {
+			return utils.Gqlerror("must be at least " + tab[1])
+		}
+	case "max":
+		if value > utils.StrToInt(tab[1]) {
+			return utils.Gqlerror("must be at most " + tab[1])
+		}
+
+	}
+	return nil
+}
+
 func (server *Server) Binding(ctx context.Context, obj interface{}, next graphql.Resolver, validation string) (interface{}, error) {
 	res, _ := next(ctx)
 	if res == nil {
@@ -210,15 +225,8 @@ func (server *Server) Binding(ctx context.Context, obj interface{}, next graphql
 	} else if valueType == "int" {
 		for _, v := range validations {
 			tmpKey := strings.Split(v, "=")
-			switch tmpKey[0] {
-			case "min":
-				if res.(int) < utils.StrToInt(tmpKey[1]) {
-					return nil, utils.Gqlerror("must be at least " + tmpKey[1])
-				}
-			case "max":
-				if res.(int) > utils.StrToInt(tmpKey[1]) {
-					return nil, utils.Gqlerror("must be at most " + tmpKey[1])
-				}
+			if ok := checkBindingInt(tmpKey, res.(int)); ok != nil {
+				return nil, ok
 			}
 		}
 	} else if valueType == "*int" {
@@ -226,15 +234,8 @@ func (server *Server) Binding(ctx context.Context, obj interface{}, next graphql
 			tmp := *res.(*int)
 			for _, v := range validations {
 				tmpKey := strings.Split(v, "=")
-				switch tmpKey[0] {
-				case "min":
-					if tmp < utils.StrToInt(tmpKey[1]) {
-						return nil, utils.Gqlerror("must be at least " + tmpKey[1])
-					}
-				case "max":
-					if tmp > utils.StrToInt(tmpKey[1]) {
-						return nil, utils.Gqlerror("must be at most " + tmpKey[1])
-					}
+				if ok := checkBindingInt(tmpKey, tmp); ok != nil {
+					return nil, ok
 				}
 			}
 		}

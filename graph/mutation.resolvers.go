@@ -46,8 +46,8 @@ func (r *mutationResolver) SingleUpload(ctx context.Context, file model.UploadIn
 }
 
 // AddViewer is the resolver for the addViewer field.
-func (r *mutationResolver) AddViewer(ctx context.Context, userID string, userViewed string) (*model.Viewer, error) {
-	return r.ViewerService.AddViewer(ctx, userID, userViewed)
+func (r *mutationResolver) AddViewer(ctx context.Context, userViewed string) (*model.Viewer, error) {
+	return r.ViewerService.AddViewer(ctx, userViewed)
 }
 
 // CreateAvis is the resolver for the createAvis field.

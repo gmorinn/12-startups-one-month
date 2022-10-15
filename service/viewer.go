@@ -12,7 +12,7 @@ import (
 )
 
 type IViewerService interface {
-	AddViewer(ctx context.Context, user_id string, user_viewed string) (*model.Viewer, error)
+	AddViewer(ctx context.Context, user_viewed string) (*model.Viewer, error)
 	GetViewersByUserID(ctx context.Context, user_id string) ([]*model.Viewer, error)
 }
 
@@ -41,15 +41,19 @@ func SqlViewerToGraphViewer(sqlViewer *db.Viewer) *model.Viewer {
 	}
 }
 
-func (s *ViewerService) AddViewer(ctx context.Context, user_id string, user_viewed string) (*model.Viewer, error) {
+func (s *ViewerService) AddViewer(ctx context.Context, user_viewed string) (*model.Viewer, error) {
 	var res *model.Viewer
 
 	err := s.server.Store.ExecTx(ctx, func(q *db.Queries) error {
-		if user_id == user_viewed {
+		user_ctx := s.server.GetUserContext(ctx)
+		if user_ctx == nil {
+			return fmt.Errorf("user context is nil")
+		}
+		if user_ctx.ID.String() == user_viewed {
 			return fmt.Errorf("user_id and user_viewed are the same")
 		}
 		newView, err := q.CreateView(ctx, db.CreateViewParams{
-			ProfilIDViewed: uuid.MustParse(user_id),
+			ProfilIDViewed: user_ctx.ID,
 			UserIDViewer:   uuid.MustParse(user_viewed),
 		})
 		if err != nil {
