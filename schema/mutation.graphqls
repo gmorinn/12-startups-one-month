@@ -40,9 +40,9 @@ type Mutation {
     # ********** AVIS MUTATION *****************
     #
     "create an avis"
-    createAvis(input: AvisInput!): Avis! @jwtAuth @hasRole(role: [ADMIN, USER])
+    createAvis(input: AvisCreateInput!): Avis! @jwtAuth @hasRole(role: [ADMIN, USER])
     "update an avis"
-    updateAvis(input: AvisInput!): Avis! @jwtAuth @hasRole(role: [ADMIN, USER])
+    updateAvis(input: AvisUpdateInput!): Avis! @jwtAuth @hasRole(role: [ADMIN, USER])
     "delete an avis"
     deleteAvis(id: String! @binding(validation: "uuid")): Boolean! @jwtAuth @hasRole(role: [ADMIN, USER])
 }

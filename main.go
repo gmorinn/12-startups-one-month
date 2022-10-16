@@ -30,6 +30,7 @@ func graphqlHandler(server *config.Server) gin.HandlerFunc {
 		FileService:   service.NewFileService(server),
 		UserService:   service.NewUserService(server),
 		ViewerService: service.NewViewerService(server),
+		AvisService:   service.NewAvisService(server),
 	}}
 
 	// custom directives

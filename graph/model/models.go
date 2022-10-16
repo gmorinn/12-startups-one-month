@@ -25,11 +25,21 @@ type Avis struct {
 }
 
 // payload send when a user give an avis
-type AvisInput struct {
+type AvisCreateInput struct {
 	// correspond of the user who receive the avis
 	UserIDTarget string `json:"user_id_target"`
 	// correspond of the user who give the avis
 	UserIDWriter string `json:"user_id_writer"`
+	// note of the avis
+	Note int `json:"note"`
+	// comment of the avis
+	Comment string `json:"comment"`
+}
+
+// payload send when a user give an avis
+type AvisUpdateInput struct {
+	// correspond the id of the avis existing
+	ID string `json:"id"`
 	// note of the avis
 	Note int `json:"note"`
 	// comment of the avis

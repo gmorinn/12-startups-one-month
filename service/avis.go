@@ -7,13 +7,14 @@ import (
 	"12-startups-one-month/utils"
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/google/uuid"
 )
 
 type IAvisService interface {
-	CreateAvis(ctx context.Context, input *model.AvisInput) (*model.Avis, error)
-	UpdateAvis(ctx context.Context, input *model.AvisInput) (*model.Avis, error)
+	CreateAvis(ctx context.Context, input *model.AvisCreateInput) (*model.Avis, error)
+	UpdateAvis(ctx context.Context, input *model.AvisUpdateInput) (*model.Avis, error)
 	DeleteAvis(ctx context.Context, id string) (bool, error)
 	GetAvisByUserID(ctx context.Context, id string) ([]*model.Avis, error)
 }
@@ -44,10 +45,21 @@ func sqlAvisToGraphAvis(sqlAvis *db.Avi) *model.Avis {
 	}
 }
 
-func (s *AvisService) CreateAvis(ctx context.Context, input *model.AvisInput) (*model.Avis, error) {
+func (s *AvisService) CreateAvis(ctx context.Context, input *model.AvisCreateInput) (*model.Avis, error) {
 	var res *model.Avis
 
 	err := s.server.Store.ExecTx(ctx, func(q *db.Queries) error {
+		// check if avis already exist
+		isExist, err := q.CheckIfAvisExist(ctx, db.CheckIfAvisExistParams{
+			UserIDTarget: uuid.MustParse(input.UserIDTarget),
+			UserIDWriter: uuid.MustParse(input.UserIDWriter),
+		})
+		if err != nil {
+			return err
+		}
+		if isExist {
+			return fmt.Errorf("avis already exists")
+		}
 		// create Avis
 		tmp_avis, err := q.CreateAvis(ctx, db.CreateAvisParams{
 			UserIDTarget: uuid.MustParse(input.UserIDTarget),
@@ -76,27 +88,27 @@ func (s *AvisService) CreateAvis(ctx context.Context, input *model.AvisInput) (*
 	return res, nil
 }
 
-func (s *AvisService) UpdateAvis(ctx context.Context, input *model.AvisInput) (*model.Avis, error) {
+func (s *AvisService) UpdateAvis(ctx context.Context, input *model.AvisUpdateInput) (*model.Avis, error) {
 	var res *model.Avis
 
 	err := s.server.Store.ExecTx(ctx, func(q *db.Queries) error {
 		// update Avis
 		if err := q.UpdateAvis(ctx, db.UpdateAvisParams{
-			// ID:      uuid.MustParse(input.),
+			ID:      uuid.MustParse(input.ID),
 			Comment: input.Comment,
 			Note:    int32(input.Note),
 		}); err != nil {
 			return err
 		}
 
-		// // get updated_avis
-		// updated_avis, err := q.GetAvisByID(ctx, uuid.MustParse(input.ID))
-		// if err != nil {
-		// 	return err
-		// }
+		// get updated_avis
+		updated_avis, err := q.GetAvisByID(ctx, uuid.MustParse(input.ID))
+		if err != nil {
+			return err
+		}
 
 		// convert to graphql model
-		// res = sqlAvisToGraphAvis(&updated_avis)
+		res = sqlAvisToGraphAvis(&updated_avis)
 		return nil
 	})
 
@@ -106,7 +118,7 @@ func (s *AvisService) UpdateAvis(ctx context.Context, input *model.AvisInput) (*
 	return res, nil
 }
 
-func (s *AvisService) DeleteAvis(ctx context.Context, id string) (*bool, error) {
+func (s *AvisService) DeleteAvis(ctx context.Context, id string) (bool, error) {
 	var res bool = false
 
 	err := s.server.Store.ExecTx(ctx, func(q *db.Queries) error {
@@ -127,9 +139,9 @@ func (s *AvisService) DeleteAvis(ctx context.Context, id string) (*bool, error) 
 	})
 
 	if err != nil {
-		return nil, utils.ErrorResponse("TX_DELETE_AVIS", err)
+		return false, utils.ErrorResponse("TX_DELETE_AVIS", err)
 	}
-	return &res, nil
+	return res, nil
 }
 
 func (s *AvisService) GetAvisByUserID(ctx context.Context, id string) ([]*model.Avis, error) {

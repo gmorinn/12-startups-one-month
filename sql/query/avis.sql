@@ -47,3 +47,12 @@ SELECT EXISTS (
     WHERE id = $1
     AND deleted_at IS NULL
 );
+
+-- name: CheckIfAvisExist :one
+SELECT EXISTS (
+    SELECT 1
+    FROM avis
+    WHERE user_id_target = $1
+    AND user_id_writer = $2
+    AND deleted_at IS NULL
+);

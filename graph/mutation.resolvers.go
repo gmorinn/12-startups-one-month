@@ -50,12 +50,12 @@ func (r *mutationResolver) AddViewer(ctx context.Context, userViewed string) (*m
 }
 
 // CreateAvis is the resolver for the createAvis field.
-func (r *mutationResolver) CreateAvis(ctx context.Context, input model.AvisInput) (*model.Avis, error) {
+func (r *mutationResolver) CreateAvis(ctx context.Context, input model.AvisCreateInput) (*model.Avis, error) {
 	return r.AvisService.CreateAvis(ctx, &input)
 }
 
 // UpdateAvis is the resolver for the updateAvis field.
-func (r *mutationResolver) UpdateAvis(ctx context.Context, input model.AvisInput) (*model.Avis, error) {
+func (r *mutationResolver) UpdateAvis(ctx context.Context, input model.AvisUpdateInput) (*model.Avis, error) {
 	return r.AvisService.UpdateAvis(ctx, &input)
 }
 

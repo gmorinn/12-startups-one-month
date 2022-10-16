@@ -27,6 +27,28 @@ func (q *Queries) CheckAvisByID(ctx context.Context, id uuid.UUID) (bool, error)
 	return exists, err
 }
 
+const checkIfAvisExist = `-- name: CheckIfAvisExist :one
+SELECT EXISTS (
+    SELECT 1
+    FROM avis
+    WHERE user_id_target = $1
+    AND user_id_writer = $2
+    AND deleted_at IS NULL
+)
+`
+
+type CheckIfAvisExistParams struct {
+	UserIDTarget uuid.UUID `json:"user_id_target"`
+	UserIDWriter uuid.UUID `json:"user_id_writer"`
+}
+
+func (q *Queries) CheckIfAvisExist(ctx context.Context, arg CheckIfAvisExistParams) (bool, error) {
+	row := q.db.QueryRowContext(ctx, checkIfAvisExist, arg.UserIDTarget, arg.UserIDWriter)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
 const createAvis = `-- name: CreateAvis :one
 INSERT INTO avis (user_id_target, user_id_writer, comment, note)
 VALUES ($1, $2, $3, $4)

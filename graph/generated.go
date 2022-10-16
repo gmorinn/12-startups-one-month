@@ -66,14 +66,14 @@ type ComplexityRoot struct {
 
 	Mutation struct {
 		AddViewer    func(childComplexity int, userViewed string) int
-		CreateAvis   func(childComplexity int, input model.AvisInput) int
+		CreateAvis   func(childComplexity int, input model.AvisCreateInput) int
 		DeleteAvis   func(childComplexity int, id string) int
 		DeleteUser   func(childComplexity int, id string) int
 		Refresh      func(childComplexity int, refreshToken mypkg.JWT) int
 		Signin       func(childComplexity int, input model.SigninInput) int
 		Signup       func(childComplexity int, input model.SignupInput) int
 		SingleUpload func(childComplexity int, file model.UploadInput) int
-		UpdateAvis   func(childComplexity int, input model.AvisInput) int
+		UpdateAvis   func(childComplexity int, input model.AvisUpdateInput) int
 		UpdateRole   func(childComplexity int, role []model.UserType, id string) int
 		UpdateUser   func(childComplexity int, input model.UpdateUserProfileInput) int
 	}
@@ -132,8 +132,8 @@ type MutationResolver interface {
 	UpdateRole(ctx context.Context, role []model.UserType, id string) (*model.User, error)
 	SingleUpload(ctx context.Context, file model.UploadInput) (*model.UploadResponse, error)
 	AddViewer(ctx context.Context, userViewed string) (*model.Viewer, error)
-	CreateAvis(ctx context.Context, input model.AvisInput) (*model.Avis, error)
-	UpdateAvis(ctx context.Context, input model.AvisInput) (*model.Avis, error)
+	CreateAvis(ctx context.Context, input model.AvisCreateInput) (*model.Avis, error)
+	UpdateAvis(ctx context.Context, input model.AvisUpdateInput) (*model.Avis, error)
 	DeleteAvis(ctx context.Context, id string) (bool, error)
 }
 type QueryResolver interface {
@@ -250,7 +250,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateAvis(childComplexity, args["input"].(model.AvisInput)), true
+		return e.complexity.Mutation.CreateAvis(childComplexity, args["input"].(model.AvisCreateInput)), true
 
 	case "Mutation.deleteAvis":
 		if e.complexity.Mutation.DeleteAvis == nil {
@@ -334,7 +334,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateAvis(childComplexity, args["input"].(model.AvisInput)), true
+		return e.complexity.Mutation.UpdateAvis(childComplexity, args["input"].(model.AvisUpdateInput)), true
 
 	case "Mutation.updateRole":
 		if e.complexity.Mutation.UpdateRole == nil {
@@ -612,7 +612,8 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	rc := graphql.GetOperationContext(ctx)
 	ec := executionContext{rc, e}
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
-		ec.unmarshalInputAvisInput,
+		ec.unmarshalInputAvisCreateInput,
+		ec.unmarshalInputAvisUpdateInput,
 		ec.unmarshalInputSigninInput,
 		ec.unmarshalInputSignupInput,
 		ec.unmarshalInputUpdateUserProfileInput,
@@ -690,11 +691,21 @@ type Avis {
 }
 
 "payload send when a user give an avis"
-input AvisInput {
+input AvisCreateInput {
     "correspond of the user who receive the avis"
     user_id_target: String! @binding(validation: "uuid")
     "correspond of the user who give the avis"
     user_id_writer: String! @binding(validation: "uuid")
+    "note of the avis"
+    note: Int! @binding(validation: "min=0,max=5")
+    "comment of the avis"
+    comment: String!
+}
+
+"payload send when a user give an avis"
+input AvisUpdateInput {
+    "correspond the id of the avis existing"
+    id: String! @binding(validation: "uuid")
     "note of the avis"
     note: Int! @binding(validation: "min=0,max=5")
     "comment of the avis"
@@ -780,9 +791,9 @@ input SignupInput {
     # ********** AVIS MUTATION *****************
     #
     "create an avis"
-    createAvis(input: AvisInput!): Avis! @jwtAuth @hasRole(role: [ADMIN, USER])
+    createAvis(input: AvisCreateInput!): Avis! @jwtAuth @hasRole(role: [ADMIN, USER])
     "update an avis"
-    updateAvis(input: AvisInput!): Avis! @jwtAuth @hasRole(role: [ADMIN, USER])
+    updateAvis(input: AvisUpdateInput!): Avis! @jwtAuth @hasRole(role: [ADMIN, USER])
     "delete an avis"
     deleteAvis(id: String! @binding(validation: "uuid")): Boolean! @jwtAuth @hasRole(role: [ADMIN, USER])
 }`, BuiltIn: false},
@@ -1001,10 +1012,10 @@ func (ec *executionContext) field_Mutation_addViewer_args(ctx context.Context, r
 func (ec *executionContext) field_Mutation_createAvis_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 model.AvisInput
+	var arg0 model.AvisCreateInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNAvisInput212ᚑstartupsᚑoneᚑmonthᚋgraphᚋmodelᚐAvisInput(ctx, tmp)
+		arg0, err = ec.unmarshalNAvisCreateInput212ᚑstartupsᚑoneᚑmonthᚋgraphᚋmodelᚐAvisCreateInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1140,10 +1151,10 @@ func (ec *executionContext) field_Mutation_singleUpload_args(ctx context.Context
 func (ec *executionContext) field_Mutation_updateAvis_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 model.AvisInput
+	var arg0 model.AvisUpdateInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNAvisInput212ᚑstartupsᚑoneᚑmonthᚋgraphᚋmodelᚐAvisInput(ctx, tmp)
+		arg0, err = ec.unmarshalNAvisUpdateInput212ᚑstartupsᚑoneᚑmonthᚋgraphᚋmodelᚐAvisUpdateInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -2536,7 +2547,7 @@ func (ec *executionContext) _Mutation_createAvis(ctx context.Context, field grap
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		directive0 := func(rctx context.Context) (interface{}, error) {
 			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().CreateAvis(rctx, fc.Args["input"].(model.AvisInput))
+			return ec.resolvers.Mutation().CreateAvis(rctx, fc.Args["input"].(model.AvisCreateInput))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
 			if ec.directives.JwtAuth == nil {
@@ -2639,7 +2650,7 @@ func (ec *executionContext) _Mutation_updateAvis(ctx context.Context, field grap
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		directive0 := func(rctx context.Context) (interface{}, error) {
 			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().UpdateAvis(rctx, fc.Args["input"].(model.AvisInput))
+			return ec.resolvers.Mutation().UpdateAvis(rctx, fc.Args["input"].(model.AvisUpdateInput))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
 			if ec.directives.JwtAuth == nil {
@@ -6419,8 +6430,8 @@ func (ec *executionContext) fieldContext___Type_specifiedByURL(ctx context.Conte
 
 // region    **************************** input.gotpl *****************************
 
-func (ec *executionContext) unmarshalInputAvisInput(ctx context.Context, obj interface{}) (model.AvisInput, error) {
-	var it model.AvisInput
+func (ec *executionContext) unmarshalInputAvisCreateInput(ctx context.Context, obj interface{}) (model.AvisCreateInput, error) {
+	var it model.AvisCreateInput
 	asMap := map[string]interface{}{}
 	for k, v := range obj.(map[string]interface{}) {
 		asMap[k] = v
@@ -6481,6 +6492,86 @@ func (ec *executionContext) unmarshalInputAvisInput(ctx context.Context, obj int
 			}
 			if data, ok := tmp.(string); ok {
 				it.UserIDWriter = data
+			} else {
+				err := fmt.Errorf(`unexpected type %T from directive, should be string`, tmp)
+				return it, graphql.ErrorOnPath(ctx, err)
+			}
+		case "note":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("note"))
+			directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNInt2int(ctx, v) }
+			directive1 := func(ctx context.Context) (interface{}, error) {
+				validation, err := ec.unmarshalNString2string(ctx, "min=0,max=5")
+				if err != nil {
+					return nil, err
+				}
+				if ec.directives.Binding == nil {
+					return nil, errors.New("directive binding is not implemented")
+				}
+				return ec.directives.Binding(ctx, obj, directive0, validation)
+			}
+
+			tmp, err := directive1(ctx)
+			if err != nil {
+				return it, graphql.ErrorOnPath(ctx, err)
+			}
+			if data, ok := tmp.(int); ok {
+				it.Note = data
+			} else {
+				err := fmt.Errorf(`unexpected type %T from directive, should be int`, tmp)
+				return it, graphql.ErrorOnPath(ctx, err)
+			}
+		case "comment":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("comment"))
+			it.Comment, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputAvisUpdateInput(ctx context.Context, obj interface{}) (model.AvisUpdateInput, error) {
+	var it model.AvisUpdateInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"id", "note", "comment"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+			directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNString2string(ctx, v) }
+			directive1 := func(ctx context.Context) (interface{}, error) {
+				validation, err := ec.unmarshalNString2string(ctx, "uuid")
+				if err != nil {
+					return nil, err
+				}
+				if ec.directives.Binding == nil {
+					return nil, errors.New("directive binding is not implemented")
+				}
+				return ec.directives.Binding(ctx, obj, directive0, validation)
+			}
+
+			tmp, err := directive1(ctx)
+			if err != nil {
+				return it, graphql.ErrorOnPath(ctx, err)
+			}
+			if data, ok := tmp.(string); ok {
+				it.ID = data
 			} else {
 				err := fmt.Errorf(`unexpected type %T from directive, should be string`, tmp)
 				return it, graphql.ErrorOnPath(ctx, err)
@@ -7840,8 +7931,13 @@ func (ec *executionContext) marshalNAvis2ᚖ12ᚑstartupsᚑoneᚑmonthᚋgraph�
 	return ec._Avis(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNAvisInput212ᚑstartupsᚑoneᚑmonthᚋgraphᚋmodelᚐAvisInput(ctx context.Context, v interface{}) (model.AvisInput, error) {
-	res, err := ec.unmarshalInputAvisInput(ctx, v)
+func (ec *executionContext) unmarshalNAvisCreateInput212ᚑstartupsᚑoneᚑmonthᚋgraphᚋmodelᚐAvisCreateInput(ctx context.Context, v interface{}) (model.AvisCreateInput, error) {
+	res, err := ec.unmarshalInputAvisCreateInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNAvisUpdateInput212ᚑstartupsᚑoneᚑmonthᚋgraphᚋmodelᚐAvisUpdateInput(ctx context.Context, v interface{}) (model.AvisUpdateInput, error) {
+	res, err := ec.unmarshalInputAvisUpdateInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 

@@ -11,11 +11,21 @@ type Avis {
 }
 
 "payload send when a user give an avis"
-input AvisInput {
+input AvisCreateInput {
     "correspond of the user who receive the avis"
     user_id_target: String! @binding(validation: "uuid")
     "correspond of the user who give the avis"
     user_id_writer: String! @binding(validation: "uuid")
+    "note of the avis"
+    note: Int! @binding(validation: "min=0,max=5")
+    "comment of the avis"
+    comment: String!
+}
+
+"payload send when a user give an avis"
+input AvisUpdateInput {
+    "correspond the id of the avis existing"
+    id: String! @binding(validation: "uuid")
     "note of the avis"
     note: Int! @binding(validation: "min=0,max=5")
     "comment of the avis"

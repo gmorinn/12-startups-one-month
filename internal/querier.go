@@ -14,6 +14,7 @@ import (
 type Querier interface {
 	CheckAvisByID(ctx context.Context, id uuid.UUID) (bool, error)
 	CheckEmailExist(ctx context.Context, email string) (bool, error)
+	CheckIfAvisExist(ctx context.Context, arg CheckIfAvisExistParams) (bool, error)
 	CheckUserByID(ctx context.Context, id uuid.UUID) (bool, error)
 	CheckViewByID(ctx context.Context, id uuid.UUID) (bool, error)
 	CreateAvis(ctx context.Context, arg CreateAvisParams) (Avi, error)

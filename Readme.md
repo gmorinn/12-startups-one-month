@@ -12,6 +12,3 @@ Create sql commands
 
 ### Step 5
 - Make service folder and resolver.go
-
-
-<!-- update avis to finished -->
