@@ -139,7 +139,7 @@ func (server *Server) HasRole(ctx context.Context, obj interface{}, next graphql
 		return nil, &gqlerror.Error{
 			Message: "Wrong role, you can't access this resource",
 		}
-	} else if utils.HasRole(userCtx.Role, roles) == false {
+	} else if !utils.HasRole(userCtx.Role, roles) {
 		return nil, &gqlerror.Error{
 			Message: "Wrong role, you can't access this resource",
 		}

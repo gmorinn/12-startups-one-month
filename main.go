@@ -42,8 +42,8 @@ func graphqlHandler(server *config.Server) gin.HandlerFunc {
 
 	h.AddTransport(transport.POST{})
 
-	// limit Maximum Query Depth of 200
-	h.Use(extension.FixedComplexityLimit(200))
+	// limit Maximum Query Depth of 25
+	h.Use(extension.FixedComplexityLimit(25))
 
 	// disabling introspection on production
 	if os.Getenv("ENV") != "production" {

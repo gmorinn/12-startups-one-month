@@ -12,3 +12,5 @@ Create sql commands
 
 ### Step 5
 - Make service folder and resolver.go
+
+<!-- limit rate -->

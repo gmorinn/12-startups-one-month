@@ -822,9 +822,6 @@ input SignupInput {
 }`, BuiltIn: false},
 	{Name: "../schema/schema.graphqls", Input: `scalar Time
 scalar Upload
-scalar UUID
-scalar Email
-scalar URL
 scalar JWT
 directive @hasRole(role: [UserType!]!) on FIELD_DEFINITION
 directive @jwtAuth on FIELD_DEFINITION
