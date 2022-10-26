@@ -1,0 +1,72 @@
+{
+	// Place your snippets for sql here. Each snippet is defined under a snippet name and has a prefix, body and 
+	// description. The prefix is what is used to trigger the snippet and the body will be expanded and inserted. Possible variables are:
+	// $1, $2 for tab stops, $0 for the final cursor position, and ${1:label}, ${2:another} for placeholders. Placeholders with the 
+	// same ids are connected.
+	// Example:
+	// "Print to console": {
+	// 	"prefix": "log",
+	// 	"body": [
+	// 		"console.log('$1');",
+	// 		"$2"
+	// 	],
+	// 	"description": "Log output to console"
+	// }
+"Generate CRUD SQL": {
+	"prefix": "goa-sql",
+	"body": [
+		"-- name: GetAll${2:name} :many",
+		"SELECT * FROM ${1:table}",
+		"WHERE deleted_at IS NULL",
+		"ORDER BY",
+		"CASE WHEN sqlc.arg('title_asc')::bool THEN title END asc,",
+		"CASE WHEN sqlc.arg('title_desc')::bool THEN title END desc",
+		"LIMIT sqlc.arg('limit') OFFSET sqlc.arg('offset');",
+		"",
+		"-- name: Get${2:name}ByID :one",
+		"SELECT * FROM ${1:table}",
+		"WHERE id = \\$1",
+		"AND deleted_at IS NULL",
+		"LIMIT 1;",
+		"",
+		"-- name: Delete${2:name}ByID :exec",
+		"UPDATE",
+		"\t${1:table}",
+		"SET",
+		"\tdeleted_at = NOW()",
+		"WHERE ",
+		"\tid = \\$1;",
+		"",
+		"-- name: Update${2:name} :exec",
+		"UPDATE ",
+		"\t${1:table}",
+		"SET",
+		"\tupdated_at = NOW()",
+		"WHERE",
+		"\tid = \\$1;",
+		"",
+		"-- name: Create${2:name} :exec",
+		"INSERT INTO ${1:table} () ",
+		"VALUES ();",
+		"",
+		"-- name: Check${2:name}ByID :one",
+		"SELECT EXISTS (",
+		"\tSELECT 1",
+		"\tFROM ${1:table}",
+		"\tWHERE id = \\$1",
+		"\tAND deleted_at IS NULL",
+		");",
+		"",
+	],
+	"description": "Generate CRUD SQL"
+},
+"Generate Migration": {
+	"prefix": "sql-mig",
+	"body": [
+		"BEGIN;",
+		"",
+		"COMMIT;",
+	],
+	"description": "Generate basic file migration"
+}
+}

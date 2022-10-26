@@ -1,0 +1,46 @@
+{
+	// Place your global snippets here. Each snippet is defined under a snippet name and has a scope, prefix, body and 
+	// description. Add comma separated ids of the languages where the snippet is applicable in the scope field. If scope 
+	// is left empty or omitted, the snippet gets applied to all languages. The prefix is what is 
+	// used to trigger the snippet and the body will be expanded and inserted. Possible variables are: 
+	// $1, $2 for tab stops, $0 for the final cursor position, and ${1:label}, ${2:another} for placeholders. 
+	// Placeholders with the same ids are connected.
+	// Example:
+	// "Print to console": {
+	// 	"scope": "javascript,typescript",
+	// 	"prefix": "log",
+	// 	"body": [
+	// 		"console.log('$1');",
+	// 		"$2"
+	// 	],
+	// 	"description": "Log output to console"
+	// }
+	"crud mutation": {
+		"prefix": "go-mutation",
+		"body": [
+		  "    #",
+		  "    # ********** $1 MUTATION *****************",
+		  "    #",
+		  "    \"create a new $2\"",
+		  "    create$2(input: Create$2Input!): $2 @jwtAuth",
+		  "    \"update a $2\"",
+		  "    update$2(input: Update$2Input!): $2 @jwtAuth",
+		  "    \"delete a $2\"",
+		  "    delete$2(id:UUID!): Boolean @jwtAuth"
+		],
+		"description": "crud mutation"
+	  },
+	  "crud query": {
+		"prefix": "go-query",
+		"body": [
+		  "    #",
+		  "    # ********** $1 QUERY *****************",
+		  "    #",
+		  "    \"returns all $2 with a limit precising in the payload, no need of role to access\"",
+		  "    $3s(limit: Int!, offset: Int!): [$2]",
+		  "    \"returns one Project by his id precising in the payload\"",
+		  "    $3(id:UUID!): $2"
+		],
+		"description": "crud query"
+	  }
+}
